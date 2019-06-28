@@ -2,31 +2,33 @@
 
 #include <sanitizer_patching.h>
 
+// Use C style programming
 extern "C" __device__ __noinline__
 SanitizerPatchResult
-memory_access_callback
+sanitizer_memory_callback
 (
  void* userdata,
  uint64_t pc,
  void* ptr,
- uint32_t accessSize,
+ uint32_t size,
  uint32_t flags
 ) 
 {
-  auto* pTracker = (MemoryAccessTracker*)userdata;
+  sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)userdata;
 
-  uint32_t old = atomicAdd(&(pTracker->currentEntry), 1);
+  uint32_t cur_index = atomicAdd(&(buffer->cur_index), 1);
 
-  if (old >= pTracker->maxEntry)
+  if (cur_index >= buffer->max_index)
     return SANITIZER_PATCH_SUCCESS;
 
-  MemoryAccess& access = pTracker->accesses[old];
-  access.pc = pc;
-  access.address = (uint64_t)(uintptr_t)ptr;
-  access.accessSize = accessSize;
-  access.flags = flags;
-  access.threadId = threadIdx;
-  access.blockId = blockIdx;
+  sanitizer_memory_buffer_t *memory_buffers = (sanitizer_memory_buffer_t *)buffer->buffers;
+  sanitizer_memory_buffer_t *cur_memory_buffer = &(memory_buffers[cur_index]);
+  cur_memory_buffer->pc = pc;
+  cur_memory_buffer->address = (uint64_t)ptr;
+  cur_memory_buffer->size = size;
+  cur_memory_buffer->flags = flags;
+  cur_memory_buffer->thread_ids = threadIdx;
+  cur_memory_buffer->block_ids = blockIdx;
 
   return SANITIZER_PATCH_SUCCESS;
 }

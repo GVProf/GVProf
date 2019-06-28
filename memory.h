@@ -4,21 +4,21 @@
 #include <cstdint>
 #include <vector_types.h>
 
-struct MemoryAccess {
+typedef struct sanitizer_memory_buffer {
   uint64_t pc;
   uint64_t address;
-  uint32_t accessSize;
+  uint32_t size;
   uint32_t flags;
-  dim3 threadId;
-  dim3 blockId;
-};
+  dim3 thread_ids;
+  dim3 block_ids;
+} sanitizer_memory_buffer_t;
 
 
-struct MemoryAccessTracker {
-  uint32_t currentEntry;
-  uint32_t maxEntry;
-  MemoryAccess* accesses;
-};
+typedef struct sanitizer_buffer {
+  uint32_t cur_index;
+  uint32_t max_index;
+  void *buffers;
+} sanitizer_buffer_t;
 
 
 #endif
