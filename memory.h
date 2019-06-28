@@ -4,11 +4,14 @@
 #include <cstdint>
 #include <vector_types.h>
 
+#define MAX_ACCESS_SIZE
+
 typedef struct sanitizer_memory_buffer {
   uint64_t pc;
   uint64_t address;
   uint32_t size;
   uint32_t flags;
+  char value[MAX_ACCESS_SIZE];  // STS.128->16 bytes
   dim3 thread_ids;
   dim3 block_ids;
 } sanitizer_memory_buffer_t;

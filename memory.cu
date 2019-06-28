@@ -21,6 +21,7 @@ sanitizer_memory_callback
   if (cur_index >= buffer->max_index)
     return SANITIZER_PATCH_SUCCESS;
 
+  // Assign basic values
   sanitizer_memory_buffer_t *memory_buffers = (sanitizer_memory_buffer_t *)buffer->buffers;
   sanitizer_memory_buffer_t *cur_memory_buffer = &(memory_buffers[cur_index]);
   cur_memory_buffer->pc = pc;
@@ -29,6 +30,11 @@ sanitizer_memory_callback
   cur_memory_buffer->flags = flags;
   cur_memory_buffer->thread_ids = threadIdx;
   cur_memory_buffer->block_ids = blockIdx;
+
+  char *byte_ptr = (char *)ptr;
+  for (size_t i = 0; i < size; ++i) {
+    cur_memory_buffer->value[i] = byte_ptr[i];
+  }
 
   return SANITIZER_PATCH_SUCCESS;
 }
