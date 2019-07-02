@@ -1,35 +1,57 @@
+/*
+ * Use C style programming in this file
+ */
 #include "memory.h"
+#include "utilities.h"
 
 #include <sanitizer_patching.h>
 
 __device__ __forceinline__
-uint32_t
-get_flat_block_id()
+void
+update_prev_memory_buffer
+(
+ sanitizer_buffer_t *buffer,
+ sanitizer_memory_buffer_t *cur_memory_buffer
+)
 {
-  return blockIdx.x + blockIdx.y * gridDim.x + gridDim.x * gridDim.y * blockIdx.z;
+  // Compute thread id
+  uint32_t block_id = get_flat_block_id();
+  uint32_t thread_id = get_flat_thread_id();
+  uint32_t block_hash_index = block_id % BLOCK_HASH_SIZE;
+  uint32_t thread_hash_index = block_hash_index * MAX_BLOCK_THREADS + thread_id;
+
+  // Get prev ptr and size
+  sanitizer_memory_buffer_t *prev_memory_buffer = buffer->prev_memory_buffer[thread_hash_index];
+
+  if (prev_memory_buffer != NULL) {
+    char *prev_ptr = (char *)(void *)prev_memory_buffer->address;
+    uint32_t prev_size = prev_memory_buffer->size;
+    for (size_t i = 0; i < prev_size; ++i) {
+      prev_memory_buffer->value[i] = prev_ptr[i];
+    }
+  }
+
+  // Update
+  buffer->prev_memory_buffer[thread_hash_index] = cur_memory_buffer;
 }
 
-
-__device__ __forceinline__
-uint32_t
-get_flat_thread_id()
-{
-  return threadIdx.z * blockDim.x * blockDim.y + threadIdx.y * blockDim.x + threadIdx.x;
-}
-
-// Use C style programming
-extern "C" __device__ __noinline__
+/*
+ * Monitor each shared and global memory access.
+ * Each time record the previous memory access to a thread private storage.
+ */
+extern "C"
+__device__ __noinline__
 SanitizerPatchResult
 sanitizer_memory_callback
 (
- void* userdata,
+ void* user_data,
  uint64_t pc,
  void* ptr,
  uint32_t size,
  uint32_t flags
 ) 
 {
-  sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)userdata;
+  sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
 
   uint32_t cur_index = atomicAdd(&(buffer->cur_index), 1);
 
@@ -46,34 +68,79 @@ sanitizer_memory_callback
   cur_memory_buffer->thread_ids = threadIdx;
   cur_memory_buffer->block_ids = blockIdx;
 
-  // Compute thread id
-  uint32_t block_id = get_flat_block_id();
-  uint32_t thread_id = get_flat_thread_id();
-  uint32_t block_hash_index = block_id % BLOCK_HASH_SIZE;
-  uint32_t thread_hash_index = block_hash_index * MAX_BLOCK_THREADS + thread_id;
-
   // Get prev ptr and index
-  void *prev_ptr = buffer->prev_ptr[thread_hash_index];
-  uint32_t prev_index = buffer->prev_index[thread_hash_index];
-  uint32_t prev_size = buffer->prev_size[thread_hash_index];
-
-  if (prev_ptr != NULL) {
-    sanitizer_memory_buffer_t *prev_memory_buffer = &(memory_buffers[prev_index]);
-
-    char *byte_ptr = (char *)prev_ptr;
-    for (size_t i = 0; i < prev_size; ++i) {
-      prev_memory_buffer->value[i] = byte_ptr[i];
-    }
-  }
-
-  // Update prev ptr and index
-  buffer->prev_ptr[thread_hash_index] = ptr;
-  buffer->prev_index[thread_hash_index] = cur_index;
+  update_prev_memory_buffer(buffer, cur_memory_buffer);
 
   return SANITIZER_PATCH_SUCCESS;
 }
 
 
-// TODO(Keren) Add block enter or block exit instrumentation
+/*
+ * Prevent data race on reading the previous memory accesses across __syncthreads and __threadfence.
+ * Each time record the previous memory access to a thread private storage.
+ */
+extern "C"
+__device__ __noinline__
+SanitizerPatchResult
+sanitizer_barrier_callback
+(
+ void *user_data,
+ uint64_t pc,
+ uint32_t bar_index
+)
+{
+  sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
 
-// TODO(Keren) Add sync instrumentation
+  // Get prev ptr and index
+  update_prev_memory_buffer(buffer, NULL);
+
+  return SANITIZER_PATCH_SUCCESS;
+}
+
+
+/*
+ * Lock the corresponding hash entry for a block
+ */
+extern "C"
+__device__ __noinline__
+SanitizerPatchResult
+sanitizer_block_enter_callback
+(
+ void *user_data
+)
+{
+  sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
+  uint32_t block_id = get_flat_block_id();
+  uint32_t block_hash_index = block_id % BLOCK_HASH_SIZE;
+
+  // Spin lock wait
+  // TODO(keren): backoff?
+  acquire(&buffer->block_hash_locks[block_hash_index]);
+
+  return SANITIZER_PATCH_SUCCESS;
+}
+
+
+extern "C"
+__device__ __noinline__
+SanitizerPatchResult
+sanitizer_block_exit_callback
+(
+ void *user_data,
+ uint64_t pc
+)
+{
+  sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
+
+  // Update prev memory accesses
+  update_prev_memory_buffer(buffer, NULL);
+
+  uint32_t block_id = get_flat_block_id();
+  uint32_t block_hash_index = block_id % BLOCK_HASH_SIZE;
+
+  release(&buffer->block_hash_locks[block_hash_index]);
+
+  return SANITIZER_PATCH_SUCCESS;
+}
+
+

@@ -1,5 +1,5 @@
-#ifndef HPCTOOLKIT_GPU_MEMORY_PATCH
-#define HPCTOOLKIT_GPU_MEMORY_PATCH
+#ifndef HPCTOOLKIT_GPU_MEMORY_PATCH_MEMORY_H
+#define HPCTOOLKIT_GPU_MEMORY_PATCH_MEMORY_H
 
 #include <cstdint>
 #include <vector_types.h>
@@ -22,10 +22,8 @@ typedef struct sanitizer_memory_buffer {
 typedef struct sanitizer_buffer {
   uint32_t cur_index;
   uint32_t max_index;
-  bool block_hash_locks[BLOCK_HASH_SIZE];
-  void *prev_ptr[BLOCK_HASH_SIZE * MAX_BLOCK_THREADS];
-  uint32_t prev_index[BLOCK_HASH_SIZE * MAX_BLOCK_THREADS];
-  uint32_t prev_size[BLOCK_HASH_SIZE * MAX_BLOCK_THREADS];
+  int block_hash_locks[BLOCK_HASH_SIZE];
+  sanitizer_memory_buffer_t *prev_memory_buffer[BLOCK_HASH_SIZE * MAX_BLOCK_THREADS];
   void *buffers;
 } sanitizer_buffer_t;
 
