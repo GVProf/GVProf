@@ -6,6 +6,9 @@
 
 #include <sanitizer_patching.h>
 
+/*
+ * Real update
+ */
 __device__ __forceinline__
 void
 update_prev_memory_buffer
@@ -34,6 +37,7 @@ update_prev_memory_buffer
   // Update
   buffer->prev_memory_buffer[thread_hash_index] = cur_memory_buffer;
 }
+
 
 /*
  * Monitor each shared and global memory access.
@@ -121,6 +125,9 @@ sanitizer_block_enter_callback
 }
 
 
+/*
+ * Release the corresponding hash entry and update the previous memory access
+ */
 extern "C"
 __device__ __noinline__
 SanitizerPatchResult
