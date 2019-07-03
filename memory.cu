@@ -46,7 +46,7 @@ update_prev_memory_buffer
 extern "C"
 __device__ __noinline__
 SanitizerPatchResult
-sanitizer_memory_callback
+sanitizer_memory_access_callback
 (
  void* user_data,
  uint64_t pc,
