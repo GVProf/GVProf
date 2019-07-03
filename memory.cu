@@ -115,11 +115,16 @@ sanitizer_block_enter_callback
 {
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
   uint32_t block_id = get_flat_block_id();
+  uint32_t thread_id = get_flat_thread_id();
   uint32_t block_hash_index = block_id % BLOCK_HASH_SIZE;
+  uint32_t thread_hash_index = block_hash_index * MAX_BLOCK_THREADS + thread_id;
 
   // Spin lock wait
   // TODO(keren): backoff?
   acquire(&buffer->block_hash_locks[block_hash_index]);
+
+  // Clear previous hash entries
+  buffer->prev_memory_buffer[thread_hash_index] = NULL;
 
   return SANITIZER_PATCH_SUCCESS;
 }
