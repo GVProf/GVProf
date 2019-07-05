@@ -1,11 +1,13 @@
 #ifndef HPCTOOLKIT_GPU_MEMORY_PATCH_UTILITIES_H
 #define HPCTOOLKIT_GPU_MEMORY_PATCH_UTILITIES_H
 
+#include <stdint.h>
+
 /*
  * Utility functions
  */
 __device__ __forceinline__
-uint32_t
+size_t
 get_flat_block_id
 (
 )
@@ -15,7 +17,7 @@ get_flat_block_id
 
 
 __device__ __forceinline__
-uint32_t
+size_t
 get_flat_thread_id
 (
 )
@@ -25,13 +27,29 @@ get_flat_thread_id
 
 
 __device__ __forceinline__
+size_t
+get_unique_thread_id
+(
+)
+{
+  return get_flat_block_id() * blockDim.x * blockDim.y * blockDim.z + get_flat_thread_id();
+}
+
+
+__device__ __forceinline__
 void
 acquire
 (
- volatile int *lock
+ uint32_t *lock,
+ uint32_t id
 )
 {
-  while (atomicCAS((int *)lock, 0, 1) != 0);
+  uint32_t old = *lock;
+  // Read newest value
+  __threadfence();
+  if (old != id) {
+    while (atomicCAS(lock, old, id) != 0);
+  }
 }
 
 
@@ -39,10 +57,11 @@ __device__ __forceinline__
 void 
 release
 (
- volatile int *lock
+ uint32_t *lock
 )
 {
-  *lock = 0;
+  atomicExch(lock, 0);
+  // Visiable to all the threads
   __threadfence();
 }
 

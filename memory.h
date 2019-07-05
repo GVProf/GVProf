@@ -4,9 +4,8 @@
 #include <cstdint>
 #include <vector_types.h>
 
-#define MAX_BLOCK_THREADS 1024
 #define MAX_ACCESS_SIZE 128
-#define BLOCK_HASH_SIZE 4095
+#define THREAD_HASH_SIZE (128 * 1024 - 1)
 
 typedef struct sanitizer_memory_buffer {
   uint64_t pc;
@@ -22,8 +21,8 @@ typedef struct sanitizer_memory_buffer {
 typedef struct sanitizer_buffer {
   uint32_t cur_index;
   uint32_t max_index;
-  int block_hash_locks[BLOCK_HASH_SIZE];
-  sanitizer_memory_buffer_t *prev_memory_buffer[BLOCK_HASH_SIZE * MAX_BLOCK_THREADS];
+  uint32_t *thread_hash_locks;  // max thread id > 2^31
+  void **prev_memory_buffer;
   void *buffers;
 } sanitizer_buffer_t;
 
