@@ -26,11 +26,12 @@ update_prev_memory_buffer
     (buffer->prev_memory_buffer[thread_hash_index]);
 
   if (prev_memory_buffer != NULL) {
-    char *prev_ptr = (char *)(void *)prev_memory_buffer->address;
+    uint8_t *prev_ptr = (uint8_t *)(void *)prev_memory_buffer->address;
     uint32_t prev_size = prev_memory_buffer->size;
     for (size_t i = 0; i < prev_size; ++i) {
       prev_memory_buffer->value[i] = prev_ptr[i];
     }
+    prev_memory_buffer->value[prev_size] = '\0';
   }
 
   // Update
@@ -55,6 +56,10 @@ sanitizer_memory_access_callback
 ) 
 {
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
+
+  if (skip_callback(buffer->block_sample_frequency)) {
+    return SANITIZER_PATCH_SUCCESS;
+  }
 
   uint32_t cur_index = atomicAdd(&(buffer->cur_index), 1);
 
@@ -94,6 +99,10 @@ sanitizer_barrier_callback
 {
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
 
+  if (skip_callback(buffer->block_sample_frequency)) {
+    return SANITIZER_PATCH_SUCCESS;
+  }
+
   // Get prev ptr and index
   update_prev_memory_buffer(buffer, NULL);
 
@@ -113,6 +122,11 @@ sanitizer_block_enter_callback
 )
 {
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
+
+  if (skip_callback(buffer->block_sample_frequency)) {
+    return SANITIZER_PATCH_SUCCESS;
+  }
+
   size_t unique_thread_id = get_unique_thread_id();
   uint32_t thread_hash_index = unique_thread_id % THREAD_HASH_SIZE;
 
@@ -121,7 +135,7 @@ sanitizer_block_enter_callback
   acquire(&buffer->thread_hash_locks[thread_hash_index], unique_thread_id);
 
   // Clear previous hash entries
-  buffer->prev_memory_buffer[thread_hash_index] = (uintptr_t)NULL;
+  buffer->prev_memory_buffer[thread_hash_index] = NULL;
 
   return SANITIZER_PATCH_SUCCESS;
 }
@@ -140,6 +154,10 @@ sanitizer_block_exit_callback
 )
 {
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
+
+  if (skip_callback(buffer->block_sample_frequency)) {
+    return SANITIZER_PATCH_SUCCESS;
+  }
 
   // Update prev memory accesses
   update_prev_memory_buffer(buffer, NULL);

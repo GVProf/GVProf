@@ -37,6 +37,20 @@ get_unique_thread_id
 
 
 __device__ __forceinline__
+bool
+skip_callback
+(
+ uint32_t frequency
+)
+{
+  if (frequency != 0) {
+    return frequency % get_flat_block_id() == 0;
+  }
+  return false;
+}
+
+
+__device__ __forceinline__
 void
 acquire
 (
