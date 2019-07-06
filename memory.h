@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector_types.h>
 
-#define MAX_ACCESS_SIZE (16 + 1)
+#define MAX_ACCESS_SIZE (16)
 #define THREAD_HASH_SIZE (128 * 1024 - 1)
 
 typedef struct sanitizer_memory_buffer {

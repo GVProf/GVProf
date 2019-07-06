@@ -54,12 +54,23 @@ sanitizer_memory_access_callback
  uint32_t flags
 ) 
 {
+  // 1. Sample limitation
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
 
-  if (skip_callback(buffer->block_sampling_frequency)) {
+  if (!sample_callback(buffer->block_sampling_frequency)) {
     return SANITIZER_PATCH_SUCCESS;
   }
 
+  // 2. Lock limitation
+  size_t unique_thread_id = get_unique_thread_id();
+  uint32_t thread_hash_index = unique_thread_id % THREAD_HASH_SIZE;
+  uint32_t *lock = &buffer->thread_hash_locks[thread_hash_index];
+
+  if (!is_locked(lock, unique_thread_id + 1)) {
+    return SANITIZER_PATCH_SUCCESS;
+  }
+
+  // 3. Buffer size limitation
   uint32_t cur_index = atomicAdd(&(buffer->cur_index), 1);
 
   if (cur_index >= buffer->max_index)
@@ -98,7 +109,15 @@ sanitizer_barrier_callback
 {
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
 
-  if (skip_callback(buffer->block_sampling_frequency)) {
+  if (!sample_callback(buffer->block_sampling_frequency)) {
+    return SANITIZER_PATCH_SUCCESS;
+  }
+
+  size_t unique_thread_id = get_unique_thread_id();
+  uint32_t thread_hash_index = unique_thread_id % THREAD_HASH_SIZE;
+  uint32_t *lock = &buffer->thread_hash_locks[thread_hash_index];
+
+  if (!is_locked(lock, unique_thread_id + 1)) {
     return SANITIZER_PATCH_SUCCESS;
   }
 
@@ -122,19 +141,22 @@ sanitizer_block_enter_callback
 {
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
 
-  if (skip_callback(buffer->block_sampling_frequency)) {
+  if (!sample_callback(buffer->block_sampling_frequency)) {
     return SANITIZER_PATCH_SUCCESS;
   }
 
   size_t unique_thread_id = get_unique_thread_id();
   uint32_t thread_hash_index = unique_thread_id % THREAD_HASH_SIZE;
+  uint32_t *lock = &buffer->thread_hash_locks[thread_hash_index];
 
   // Spin lock wait
+  // 0: not locked
+  // 1-N: locked by a thread
   // TODO(keren): backoff?
-  acquire(&buffer->thread_hash_locks[thread_hash_index], unique_thread_id);
-
-  // Clear previous hash entries
-  buffer->prev_memory_buffer[thread_hash_index] = NULL;
+  if (try_acquire(lock, unique_thread_id + 1)) {
+    // Clear previous hash entries
+    buffer->prev_memory_buffer[thread_hash_index] = NULL;
+  }
 
   return SANITIZER_PATCH_SUCCESS;
 }
@@ -154,17 +176,19 @@ sanitizer_block_exit_callback
 {
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
 
-  if (skip_callback(buffer->block_sampling_frequency)) {
+  if (!sample_callback(buffer->block_sampling_frequency)) {
     return SANITIZER_PATCH_SUCCESS;
   }
 
-  // Update prev memory accesses
-  update_prev_memory_buffer(buffer, NULL);
-
   size_t unique_thread_id = get_unique_thread_id();
   uint32_t thread_hash_index = unique_thread_id % THREAD_HASH_SIZE;
+  uint32_t *lock = &buffer->thread_hash_locks[thread_hash_index];
 
-  release(&buffer->thread_hash_locks[thread_hash_index]);
+  if (is_locked(lock, unique_thread_id + 1)) {
+    // Update prev memory accesses
+    update_prev_memory_buffer(buffer, NULL);
+    release(lock, unique_thread_id + 1);
+  }
 
   return SANITIZER_PATCH_SUCCESS;
 }

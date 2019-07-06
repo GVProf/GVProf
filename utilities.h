@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define LOCK_NUM_TRIALS 10
+
 /*
  * Utility functions
  */
@@ -38,22 +40,23 @@ get_unique_thread_id
 
 __device__ __forceinline__
 bool
-skip_callback
+sample_callback
 (
  uint32_t frequency
 )
 {
   if (frequency != 0) {
-    return get_flat_block_id() % frequency != 0;
+    // Sample a portion of blocks
+    return get_flat_block_id() % frequency == 0;
   }
-  // not sampling
-  return false;
+  // Sample all blocks
+  return true;
 }
 
 
 __device__ __forceinline__
-void
-acquire
+bool
+is_locked
 (
  uint32_t *lock,
  uint32_t id
@@ -62,9 +65,25 @@ acquire
   uint32_t old = *lock;
   // Read the newest value
   __threadfence();
-  if (old != id) {
-    while (atomicCAS(lock, 0, id) != 0);
+  return old == id;
+}
+
+
+__device__ __forceinline__
+bool
+try_acquire
+(
+ uint32_t *lock,
+ uint32_t id
+)
+{
+  // Only try finite number of times
+  for (size_t i = 0; i < LOCK_NUM_TRIALS; ++i) {
+    if (atomicCAS(lock, 0, id) == 0) {
+      return true;
+    }
   }
+  return false;
 }
 
 
@@ -72,7 +91,8 @@ __device__ __forceinline__
 void 
 release
 (
- uint32_t *lock
+ uint32_t *lock,
+ uint32_t id
 )
 {
   atomicExch(lock, 0);
