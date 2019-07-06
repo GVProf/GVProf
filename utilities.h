@@ -48,7 +48,7 @@ acquire
   // Read newest value
   __threadfence();
   if (old != id) {
-    while (atomicCAS(lock, old, id) != 0);
+    while (atomicCAS(lock, 0, id) != 0);
   }
 }
 
