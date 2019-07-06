@@ -44,8 +44,9 @@ skip_callback
 )
 {
   if (frequency != 0) {
-    return frequency % get_flat_block_id() == 0;
+    return get_flat_block_id() % frequency != 0;
   }
+  // not sampling
   return false;
 }
 

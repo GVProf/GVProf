@@ -57,7 +57,7 @@ sanitizer_memory_access_callback
 {
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
 
-  if (skip_callback(buffer->block_sample_frequency)) {
+  if (skip_callback(buffer->block_sampling_frequency)) {
     return SANITIZER_PATCH_SUCCESS;
   }
 
@@ -99,7 +99,7 @@ sanitizer_barrier_callback
 {
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
 
-  if (skip_callback(buffer->block_sample_frequency)) {
+  if (skip_callback(buffer->block_sampling_frequency)) {
     return SANITIZER_PATCH_SUCCESS;
   }
 
@@ -123,7 +123,7 @@ sanitizer_block_enter_callback
 {
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
 
-  if (skip_callback(buffer->block_sample_frequency)) {
+  if (skip_callback(buffer->block_sampling_frequency)) {
     return SANITIZER_PATCH_SUCCESS;
   }
 
@@ -155,7 +155,7 @@ sanitizer_block_exit_callback
 {
   sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
 
-  if (skip_callback(buffer->block_sample_frequency)) {
+  if (skip_callback(buffer->block_sampling_frequency)) {
     return SANITIZER_PATCH_SUCCESS;
   }
 
