@@ -31,7 +31,6 @@ update_prev_memory_buffer
     for (size_t i = 0; i < prev_size; ++i) {
       prev_memory_buffer->value[i] = prev_ptr[i];
     }
-    prev_memory_buffer->value[prev_size] = '\0';
   }
 
   // Update

@@ -60,7 +60,7 @@ acquire
 )
 {
   uint32_t old = *lock;
-  // Read newest value
+  // Read the newest value
   __threadfence();
   if (old != id) {
     while (atomicCAS(lock, 0, id) != 0);
