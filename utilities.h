@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define LOCK_NUM_TRIALS 10
+#define LOCK_NUM_TRIALS 1
 
 /*
  * Utility functions
@@ -14,7 +14,7 @@ get_flat_block_id
 (
 )
 {
-  return blockIdx.x + blockIdx.y * gridDim.x + gridDim.x * gridDim.y * blockIdx.z;
+  return blockIdx.x + blockIdx.y * gridDim.x + blockIdx.z * gridDim.x * gridDim.y;
 }
 
 
@@ -91,8 +91,7 @@ __device__ __forceinline__
 void 
 release
 (
- uint32_t *lock,
- uint32_t id
+ uint32_t *lock
 )
 {
   atomicExch(lock, 0);

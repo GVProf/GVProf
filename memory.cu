@@ -129,6 +129,40 @@ sanitizer_barrier_callback
 
 
 /*
+ * Prevent data race on thread level synchronization
+ * Each time record the previous memory access to a thread private storage.
+ */
+extern "C"
+__device__ __noinline__
+SanitizerPatchResult
+sanitizer_shfl_callback
+(
+ void *user_data,
+ uint64_t pc
+)
+{
+  sanitizer_buffer_t* buffer = (sanitizer_buffer_t *)user_data;
+
+  if (!sample_callback(buffer->block_sampling_frequency)) {
+    return SANITIZER_PATCH_SUCCESS;
+  }
+
+  size_t unique_thread_id = get_unique_thread_id();
+  uint32_t thread_hash_index = unique_thread_id % THREAD_HASH_SIZE;
+  uint32_t *lock = &buffer->thread_hash_locks[thread_hash_index];
+
+  if (!is_locked(lock, unique_thread_id + 1)) {
+    return SANITIZER_PATCH_SUCCESS;
+  }
+
+  // Get prev ptr and index
+  update_prev_memory_buffer(buffer, NULL);
+
+  return SANITIZER_PATCH_SUCCESS;
+}
+
+
+/*
  * Lock the corresponding hash entry for a block
  */
 extern "C"
@@ -187,7 +221,7 @@ sanitizer_block_exit_callback
   if (is_locked(lock, unique_thread_id + 1)) {
     // Update prev memory accesses
     update_prev_memory_buffer(buffer, NULL);
-    release(lock, unique_thread_id + 1);
+    release(lock);
   }
 
   return SANITIZER_PATCH_SUCCESS;
