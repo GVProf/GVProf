@@ -99,4 +99,103 @@ release
   __threadfence();
 }
 
+// TODO(Keren): faster memory read optimization for different layers
+__device__ __forceinline__
+void
+read_shared_memory
+(
+ uint32_t size,
+ uint32_t ptr,
+ uint8_t *buf
+)
+{
+#if 0
+  switch (size) {
+    case 16:
+      {
+        uint64_t ret1, ret2;
+        asm volatile("ld.shared.u64 %0,[%1];" : "=l"(ret1) : "r"(ptr) : "memory");
+        asm volatile("ld.shared.u64 %0,[%1];" : "=l"(ret2) : "r"(ptr + 8) : "memory");
+        uint64_t *tmp = (uint64_t *)buf;
+        tmp[0] = ret1;
+        tmp[1] = ret2;
+        break;
+      }
+    case 8:
+      {
+        uint64_t ret;
+        asm volatile("ld.shared.u64 %0,[%1];" : "=l"(ret) : "r"(ptr) : "memory");
+        uint64_t *tmp = (uint64_t *)buf;
+        tmp[0] = ret;
+        break;
+      }
+    case 4:
+      {
+        uint32_t ret;
+        asm volatile("ld.shared.u32 %0,[%1];" : "=r"(ret) : "r"(ptr) : "memory");
+        uint32_t *tmp = (uint32_t *)buf;
+        tmp[0] = ret;
+        break;
+      }
+    case 2:
+      {
+        uint32_t ret;
+        asm volatile("ld.shared.u16 %0,[%1];" : "=r"(ret) : "r"(ptr) : "memory");
+        uint16_t *tmp = (uint16_t *)buf;
+        tmp[0] = ret;
+        break;
+      }
+    case 1:
+      {
+        uint32_t ret;
+        asm volatile("ld.shared.u8 %0,[%1];" : "=r"(ret) : "r"(ptr) : "memory");
+        uint8_t *tmp = (uint8_t *)buf;
+        tmp[0] = ret;
+        break;
+      }
+    default: 
+      break;
+  }
+#endif
+
+  for (uint32_t i = 0; i < size; ++i) {
+    uint32_t ret;
+    asm volatile("ld.shared.u8 %0,[%1];" : "=r"(ret) : "r"(ptr + i) : "memory");
+    buf[i] = ret;
+  }
+}
+
+
+__device__ __forceinline__
+void
+read_global_memory
+(
+ uint32_t size,
+ uint64_t ptr,
+ uint8_t *buf
+)
+{
+  for (uint32_t i = 0; i < size; ++i) {
+    buf[i] = *((uint8_t *)ptr + i);
+  }
+}
+
+
+__device__ __forceinline__
+void
+read_local_memory
+(
+ uint32_t size,
+ uint32_t ptr,
+ uint8_t *buf
+)
+{
+  for (uint32_t i = 0; i < size; ++i) {
+    uint32_t ret = 0;
+    asm volatile("ld.local.b8 %0,[%1];" : "=r"(ret) : "r"(ptr + i) : "memory");
+    buf[i] = ret;
+  }
+}
+
+
 #endif

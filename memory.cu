@@ -15,9 +15,9 @@ __device__ __noinline__
 SanitizerPatchResult
 sanitizer_memory_access_callback
 (
- void* user_data,
+ void *user_data,
  uint64_t pc,
- void* ptr,
+ void *address,
  uint32_t size,
  uint32_t flags,
  const void *new_value
@@ -49,17 +49,24 @@ sanitizer_memory_access_callback
   sanitizer_memory_buffer_t *memory_buffers = (sanitizer_memory_buffer_t *)buffer->buffers;
   sanitizer_memory_buffer_t *cur_memory_buffer = &(memory_buffers[cur_index]);
   cur_memory_buffer->pc = pc;
-  cur_memory_buffer->address = (uint64_t)ptr;
+  cur_memory_buffer->address = (uint64_t)address;
   cur_memory_buffer->size = size;
   cur_memory_buffer->flags = flags;
   cur_memory_buffer->thread_ids = threadIdx;
   cur_memory_buffer->block_ids = blockIdx;
 
-  if (new_value != NULL) {
-    uint8_t *ptr = (uint8_t *)(void *)new_value;
-    for (size_t i = 0; i < size; ++i) {
-      cur_memory_buffer->value[i] = ptr[i];
+  if (new_value == NULL) {
+    // Read operation, old value can be on local memory, shared memory, or global memory
+    if (flags & SANITIZER_MEMORY_DEVICE_FLAG_SHARED) {
+      read_shared_memory(size, (uint32_t)address, (uint8_t *)cur_memory_buffer->value);
+    } else if (flags & SANITIZER_MEMORY_DEVICE_FLAG_LOCAL) {
+      read_local_memory(size, (uint32_t)address, (uint8_t *)cur_memory_buffer->value);
+    } else if (flags != SANITIZER_MEMORY_DEVICE_FLAG_FORCE_INT) {
+      read_global_memory(size, (uint64_t)address, (uint8_t *)cur_memory_buffer->value);
     }
+  } else {
+    // Write operation, new value is on global memory
+    read_global_memory(size, (uint64_t)new_value, (uint8_t *)cur_memory_buffer->value);
   }
 
   return SANITIZER_PATCH_SUCCESS;
