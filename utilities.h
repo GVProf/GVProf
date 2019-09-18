@@ -99,7 +99,6 @@ release
   __threadfence();
 }
 
-// TODO(Keren): faster memory read optimization for different layers
 __device__ __forceinline__
 void
 read_shared_memory
@@ -110,12 +109,13 @@ read_shared_memory
 )
 {
 #if 0
+// TODO(Keren): faster memory read optimization for different layers
   switch (size) {
     case 16:
       {
         uint64_t ret1, ret2;
-        asm volatile("ld.shared.u64 %0,[%1];" : "=l"(ret1) : "r"(ptr) : "memory");
-        asm volatile("ld.shared.u64 %0,[%1];" : "=l"(ret2) : "r"(ptr + 8) : "memory");
+        asm volatile("ld.shared.b64 %0,[%1];" : "=l"(ret1) : "r"(ptr) : "memory");
+        asm volatile("ld.shared.b64 %0,[%1];" : "=l"(ret2) : "r"(ptr + 8) : "memory");
         uint64_t *tmp = (uint64_t *)buf;
         tmp[0] = ret1;
         tmp[1] = ret2;
@@ -132,7 +132,7 @@ read_shared_memory
     case 4:
       {
         uint32_t ret;
-        asm volatile("ld.shared.u32 %0,[%1];" : "=r"(ret) : "r"(ptr) : "memory");
+        asm volatile("ld.shared.b32 %0,[%1];" : "=r"(ret) : "r"(ptr) : "memory");
         uint32_t *tmp = (uint32_t *)buf;
         tmp[0] = ret;
         break;
@@ -140,7 +140,7 @@ read_shared_memory
     case 2:
       {
         uint32_t ret;
-        asm volatile("ld.shared.u16 %0,[%1];" : "=r"(ret) : "r"(ptr) : "memory");
+        asm volatile("ld.shared.b16 %0,[%1];" : "=r"(ret) : "r"(ptr) : "memory");
         uint16_t *tmp = (uint16_t *)buf;
         tmp[0] = ret;
         break;
@@ -148,7 +148,7 @@ read_shared_memory
     case 1:
       {
         uint32_t ret;
-        asm volatile("ld.shared.u8 %0,[%1];" : "=r"(ret) : "r"(ptr) : "memory");
+        asm volatile("ld.shared.b8 %0,[%1];" : "=r"(ret) : "r"(ptr) : "memory");
         uint8_t *tmp = (uint8_t *)buf;
         tmp[0] = ret;
         break;
@@ -159,8 +159,8 @@ read_shared_memory
 #endif
 
   for (uint32_t i = 0; i < size; ++i) {
-    uint32_t ret;
-    asm volatile("ld.shared.u8 %0,[%1];" : "=r"(ret) : "r"(ptr + i) : "memory");
+    uint32_t ret = 0;
+    asm volatile("ld.shared.b8 %0,[%1];" : "=r"(ret) : "r"(ptr + i) : "memory");
     buf[i] = ret;
   }
 }
@@ -176,7 +176,9 @@ read_global_memory
 )
 {
   for (uint32_t i = 0; i < size; ++i) {
-    buf[i] = *((uint8_t *)ptr + i);
+    uint32_t ret = 0;
+    asm volatile("ld.b8 %0,[%1];" : "=r"(ret) : "l"(ptr + i) : "memory");
+    buf[i] = ret;
   }
 }
 
