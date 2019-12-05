@@ -1,0 +1,3 @@
+[submodule "hpctoolkit"]
+	path = hpctoolkit
+	url = git@github.com:Jokeren/hpctoolkit.git
