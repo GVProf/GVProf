@@ -26,5 +26,13 @@ all: $(PROJECT)
 $(PROJECT): %.fatbin : $(SRC_DIR)/%.cu
 	$(NVCC) $(CXXFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
+ifdef PREFIX
+install:
+	mkdir -p $(PREFIX)/lib
+	mkdir -p $(PREFIX)/include
+	cp -rf $(PROJECT) $(PREFIX)/lib
+	cp -rf include $(PREFIX)
+endif
+
 clean:
 	rm -f $(PROJECT)
