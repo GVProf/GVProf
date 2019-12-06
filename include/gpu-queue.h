@@ -43,7 +43,7 @@ gpu_queue_get
     }
   }
   
-  gpu_patch_record_t *records = (gpu_patch_record_t *)buffer->gpu_patch_records;
+  gpu_patch_record_t *records = (gpu_patch_record_t *)buffer->records;
   return records + tail_index;
 }
 

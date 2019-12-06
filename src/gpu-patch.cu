@@ -95,7 +95,7 @@ sanitizer_block_exit_callback
   }
 
   // Finish one block
-  atomicAdd(&buffer->nblocks, -1);
+  atomicAdd(&buffer->num_blocks, -1);
 
   return SANITIZER_PATCH_SUCCESS;
 }

@@ -24,10 +24,10 @@ typedef struct gpu_patch_buffer {
   uint32_t head_index;
   uint32_t tail_index;
   uint32_t size;
-  uint32_t nblocks;  // If nblocks == 0, the kernel is finished
-  bool full;
+  uint32_t num_blocks;  // If nblocks == 0, the kernel is finished
   uint32_t block_sampling_frequency;
-  void *gpu_patch_records;
+  void *records;
+  bool full;
 } gpu_patch_buffer_t;
 
 #endif
