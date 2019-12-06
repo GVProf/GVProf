@@ -31,7 +31,7 @@ sanitizer_memory_access_callback
   }
 
   // 1. Init values
-  uint32_t active_mask = __ballot_sync(0xFFFFFFFF, 1);
+  uint32_t active_mask = __activemask();
   uint32_t laneid = get_laneid();
   uint32_t first_laneid = __ffs(active_mask) - 1;
 
@@ -51,24 +51,33 @@ sanitizer_memory_access_callback
     read_global_memory(size, (uint64_t)new_value, buf);
   }
 
+  gpu_patch_record_t *record = NULL;
   if (laneid == first_laneid) {
     // 3. Get a record
-    gpu_patch_record_t *record = gpu_queue_get(buffer); 
+    record = gpu_queue_get(buffer); 
 
     // 4. Assign basic values
+    record->active = active_mask;
     record->pc = pc;
     record->size = size;
     record->flat_thread_id = get_flat_thread_id();
     record->flat_block_id = get_flat_block_id();
-    for (uint32_t i = 0; i < WARP_SIZE; i++) {
-      uint64_t addr = (uint64_t)address;
-      record->address[i] = shfl(addr, i);
-      record->flags[i] = shfl(flags, i);
-      for (uint32_t j = 0; j < size; ++j) {
-        record->value[i][j] = shfl(buf[j], i);
-      }
-    }
+  }
 
+  __syncwarp();
+
+  uint64_t r = (uint64_t)record;
+  record = (gpu_patch_record_t *)shfl(r, 0);
+
+  record->address[laneid] = (uint64_t)address;
+  record->flags[laneid] = flags;
+  for (uint32_t i = 0; i < size; ++i) {
+    record->value[laneid][i] = buf[i];
+  }
+
+  __syncwarp();
+
+  if (laneid == first_laneid) {
     // 5. Push a record
     gpu_queue_push(buffer);
   }
@@ -96,7 +105,10 @@ sanitizer_block_exit_callback
   }
 
   // Finish one block
-  atomicAdd(&buffer->num_blocks, -1);
+  uint32_t thread_id = get_flat_thread_id();
+  if (thread_id == 0) {
+    atomicAdd(&buffer->num_blocks, -1);
+  }
 
   return SANITIZER_PATCH_SUCCESS;
 }

@@ -10,7 +10,7 @@ NVCC := $(CUDA_PATH)/bin/nvcc
 
 INCLUDE_DIRS := -I$(CUDA_PATH)/include -I$(SANITIZER_PATH)/include -I$(CUPTI_PATH)/include -Iinclude
 SRC_DIR := src
-CXXFLAGS := $(INCLUDE_DIRS) --fatbin --keep-device-functions -Xptxas --compile-as-tools-patch
+CXXFLAGS := $(INCLUDE_DIRS) -O2 --fatbin --keep-device-functions -Xptxas --compile-as-tools-patch
 
 ARCHS := 50 60 70 75
 

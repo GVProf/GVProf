@@ -140,7 +140,7 @@ shfl
 )
 {
   T ret;
-#if ( __CUDA_ARCH__ >= 300)
+#if (__CUDA_ARCH__ >= 300)
 #if (__CUDACC_VER_MAJOR__ >= 9)
     ret = __shfl_sync(0xFFFFFFFF, v, srcline);
 #else
@@ -159,7 +159,7 @@ ballot
 )
 {
   uint32_t ret;
-#if ( __CUDA_ARCH__ >= 300)
+#if (__CUDA_ARCH__ >= 300)
 #if (__CUDACC_VER_MAJOR__ >= 9)
   ret = __ballot_sync(0xFFFFFFFF, predicate);
 #else
