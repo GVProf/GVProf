@@ -27,7 +27,7 @@ $(PROJECT): %.fatbin : $(SRC_DIR)/%.cu
 	$(NVCC) $(CXXFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 ifdef PREFIX
-install:
+install: $(PROJECT)
 	mkdir -p $(PREFIX)/lib
 	mkdir -p $(PREFIX)/include
 	cp -rf $(PROJECT) $(PREFIX)/lib

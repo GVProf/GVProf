@@ -2,6 +2,7 @@
 #define HPCTOOLKIT_GPU_PATCH_GPU_PATCH_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define MAX_ACCESS_SIZE (16)
 #define WARP_SIZE (32)
@@ -14,9 +15,7 @@ typedef struct gpu_patch_record {
   uint32_t flat_block_id;
   uint64_t address[WARP_SIZE];
   uint8_t value[WARP_SIZE][MAX_ACCESS_SIZE];  // STS.128->16 bytes
-#ifdef DEBUG
-  uint32_t flag[WARP_SIZE];
-#endif
+  uint32_t flags[WARP_SIZE];
 } gpu_patch_record_t;
 
 

@@ -63,6 +63,7 @@ sanitizer_memory_access_callback
     for (uint32_t i = 0; i < WARP_SIZE; i++) {
       uint64_t addr = (uint64_t)address;
       record->address[i] = shfl(addr, i);
+      record->flags[i] = shfl(flags, i);
       for (uint32_t j = 0; j < size; ++j) {
         record->value[i][j] = shfl(buf[j], i);
       }
