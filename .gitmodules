@@ -1,3 +1,6 @@
 [submodule "hpctoolkit"]
 	path = hpctoolkit
 	url = git@github.com:Jokeren/hpctoolkit.git
+[submodule "samples"]
+	path = samples
+	url = git@github.com:FindHao/hpctoolkit-gpu-sanitizer-samples.git

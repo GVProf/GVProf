@@ -18,16 +18,17 @@ gpu_queue_get
 {
   uint32_t size = buffer->size;
   uint32_t tail_index = 0;
-  while (true) {
-    tail_index = atomicAdd(&buffer->tail_index, 1);
-    if (tail_index >= size) {
+  while (tail_index == 0) {
+    tail_index = atomicAdd((uint32_t *)&buffer->tail_index, 1) + 1;
+    // Write on tail_index - 1
+    if (tail_index - 1 >= size) {
         // First warp that found buffer is full
-      if (tail_index == size) {
+      if (tail_index - 1 == size) {
         // Wait for previous warps finish writing
-        while (buffer->head_index != tail_index);
+        while (buffer->head_index < size);
         // Sync with CPU
         __threadfence_system();
-        buffer->full = true;
+        buffer->full = 1;
         __threadfence_system();
         while (buffer->full);
         __threadfence();
@@ -36,15 +37,14 @@ gpu_queue_get
         buffer->tail_index = 0;
       } else {
         // Other waps
-        while (buffer->tail_index > size);
+        while (buffer->tail_index >= size);
       }
-    } else {
-      break;
+      tail_index = 0;
     }
   }
   
   gpu_patch_record_t *records = (gpu_patch_record_t *)buffer->records;
-  return records + tail_index;
+  return records + tail_index - 1;
 }
 
 
@@ -59,7 +59,7 @@ gpu_queue_push
 )
 {
   // Make sure records are visible
-  atomicAdd(&buffer->head_index, 1);
+  atomicAdd((uint32_t *)&buffer->head_index, 1);
 }
 
 #endif

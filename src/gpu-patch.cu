@@ -64,18 +64,20 @@ sanitizer_memory_access_callback
     record->flat_block_id = get_flat_block_id();
   }
 
-  __syncwarp();
+  __syncwarp(active_mask);
 
   uint64_t r = (uint64_t)record;
-  record = (gpu_patch_record_t *)shfl(r, 0);
+  record = (gpu_patch_record_t *)shfl(r, first_laneid, active_mask);
 
-  record->address[laneid] = (uint64_t)address;
-  record->flags[laneid] = flags;
-  for (uint32_t i = 0; i < size; ++i) {
-    record->value[laneid][i] = buf[i];
+  if (record != NULL) {
+    record->address[laneid] = (uint64_t)address;
+    record->flags[laneid] = flags;
+    for (uint32_t i = 0; i < size; ++i) {
+      record->value[laneid][i] = buf[i];
+    }
   }
 
-  __syncwarp();
+  __syncwarp(active_mask);
 
   if (laneid == first_laneid) {
     // 5. Push a record

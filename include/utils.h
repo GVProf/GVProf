@@ -136,13 +136,14 @@ T
 shfl
 (
  T v,
- uint32_t srcline
+ uint32_t srcline,
+ uint32_t mask = 0xFFFFFFFF
 )
 {
   T ret;
 #if (__CUDA_ARCH__ >= 300)
 #if (__CUDACC_VER_MAJOR__ >= 9)
-    ret = __shfl_sync(0xFFFFFFFF, v, srcline);
+    ret = __shfl_sync(mask, v, srcline);
 #else
     ret = __shfl(v, srcline);
 #endif
@@ -155,13 +156,14 @@ __device__ __forceinline__
 uint32_t
 ballot
 (
- int32_t predicate
+ int32_t predicate,
+ uint32_t mask = 0xFFFFFFFF
 )
 {
   uint32_t ret;
 #if (__CUDA_ARCH__ >= 300)
 #if (__CUDACC_VER_MAJOR__ >= 9)
-  ret = __ballot_sync(0xFFFFFFFF, predicate);
+  ret = __ballot_sync(mask, predicate);
 #else
   ret = __ballot(predicate);
 #endif
