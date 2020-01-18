@@ -14,16 +14,6 @@ git clone --recursive git@github.com:Jokeren/hpctoolkit-gpu-patch.git
 cd hpctoolkit-gpu-patch
 ```
 
-## Compile dyninst
-
-```bash
-cd dyninst/
-cmake /path/to/dyninst/source -DCMAKE_INSTALL_PREFIX=/path/to/installation
-make install -j4
-```
-
-If this does not work for you, please refer to the [Wiki](https://github.com/dyninst/dyninst/wiki) for detailed instructions. If you encounter any errors, see the [Building Dyninst](https://github.com/dyninst/dyninst/wiki/Building-Dyninst) or leave a [GitHub issue](https://github.com/dyninst/dyninst/issues).
-
 ## Compile GPU patch
 
 ```bash
@@ -33,6 +23,8 @@ make PREFIX=/path/to/install/gpu/patch/lib install
 ```
 
 ## Configure spack
+
+Spack is a flexible package manager ans we use it to build the libraries hpctoolkit needed.
 
 - config.yaml
 
@@ -67,17 +59,55 @@ cp /path/to/hpctoolkit/spack/package.py ./
 spack spec hpctoolkit
 ```
 
-## Install hpctoolkit
+## Install dependencies
 
 ```bash
 spack install --only dependencies hpctoolkit 
+```
+
+## Compile dyninst
+
+Currently, we need a specific version of dyninst. So we have to compile it by ourself.
+
+### Get required packages' paths
+
+Since we have build the required packages by spack, now we have to get the paths dyninst needed.
+
+Run`spack install --only dependencies hpctoolkit ` again, and the console will output every libraries installed by spack. And we need the following libaraies' paths:
+
+```
+elfutils
+boost
+intel-tbb
+```
+
+### Compile
+
+```bash
+cd dyninst/
+cmake /path/to/dyninst/source -DCMAKE_INSTALL_PREFIX=/path/to/installation -DBoost_ROOT_DIR=/boost/lib/path -DLibElf_ROOT_DIR=/elfutils/lib/path/ -DTBB_ROOT_DIR=/intel-tbb/lib/path
+# Before make, make sure there is no errors in the last step
+make install -j4
+```
+
+## Install hpctoolkit
+
+```bash
 cd /path/to/hpctoolkit
 mkdir build && cd build
 # Tip: check spack libraries' root->spack find --path.  
-# For example: --with-spack=/home/username/spack/opt/spack/linux-ubuntu18.04-ivybridge/gcc-7.4.0/
+# For example: --with-spack=/home/username/spack/opt/spack/linux-ubuntu18.04-zen/gcc-7.4.0/
 ../configure --prefix=/path/to/install/hpctoolkit --with-dyninst=/path/to/dyninst/installation --with-cuda=/usr/local/cuda-10.1 --with-sanitizer=/path/to/sanitizer/lib --with-cupti=/usr/local/cuda-10.1/extras/CUPTI --with-gpu-patch=/path/to/install/gpu/patch/lib --with-spack=/path/to/spack/libraries/root --enable-develop
-
 make install -j8
+```
+
+### Add to environment
+
+Add following lines into your `.bashrc` file and source it.
+
+```bash
+export HPCTOOLKIT=/path/to/install/hpctoolkit
+export PATH=$HPCTOOLKIT/bin/:$PATH
 ```
 
 ### Test sanitizer
