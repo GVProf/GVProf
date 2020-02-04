@@ -52,12 +52,13 @@ __device__ __forceinline__
 bool
 sample_callback
 (
- uint32_t frequency
+ uint32_t frequency,
+ uint32_t offset
 )
 {
   if (frequency != 0) {
     // Sample a portion of blocks
-    return get_flat_block_id() % frequency == 0;
+    return (get_flat_block_id() - offset) % frequency == 0;
   }
   // Sample all blocks
   return true;

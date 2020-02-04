@@ -26,7 +26,7 @@ sanitizer_memory_access_callback
 {
   gpu_patch_buffer_t *buffer = (gpu_patch_buffer_t *)user_data;
 
-  if (!sample_callback(buffer->block_sampling_frequency)) {
+  if (!sample_callback(buffer->block_sampling_frequency, buffer->block_sampling_offset)) {
     return SANITIZER_PATCH_SUCCESS;
   }
 
@@ -102,7 +102,7 @@ sanitizer_block_exit_callback
 {
   gpu_patch_buffer_t* buffer = (gpu_patch_buffer_t *)user_data;
 
-  if (!sample_callback(buffer->block_sampling_frequency)) {
+  if (!sample_callback(buffer->block_sampling_frequency, buffer->block_sampling_offset)) {
     return SANITIZER_PATCH_SUCCESS;
   }
 
@@ -130,7 +130,7 @@ sanitizer_block_enter_callback
 {
   gpu_patch_buffer_t* buffer = (gpu_patch_buffer_t *)user_data;
 
-  if (!sample_callback(buffer->block_sampling_frequency)) {
+  if (!sample_callback(buffer->block_sampling_frequency, buffer->block_sampling_offset)) {
     return SANITIZER_PATCH_SUCCESS;
   }
 

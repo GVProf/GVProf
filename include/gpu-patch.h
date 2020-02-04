@@ -24,6 +24,7 @@ typedef struct gpu_patch_buffer {
   volatile uint32_t tail_index;
   uint32_t size;
   uint32_t num_blocks;  // If nblocks == 0, the kernel is finished
+  uint32_t block_sampling_offset;
   uint32_t block_sampling_frequency;
   volatile uint32_t full;
   void *records;
