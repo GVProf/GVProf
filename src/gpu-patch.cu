@@ -106,10 +106,18 @@ sanitizer_block_exit_callback
     return SANITIZER_PATCH_SUCCESS;
   }
 
-  // Finish one block
   uint32_t thread_id = get_flat_thread_id();
+
   if (thread_id == 0) {
+    // Finish one block
     atomicAdd(&buffer->num_blocks, -1);
+
+    // Mark block end
+    gpu_patch_record_t *record = gpu_queue_get(buffer); 
+
+    record->flags[0] = BLOCK_EXIT_FLAG;
+    record->flat_block_id = get_flat_block_id();
+    gpu_queue_push(buffer);
   }
 
   return SANITIZER_PATCH_SUCCESS;
@@ -132,6 +140,20 @@ sanitizer_block_enter_callback
 
   if (!sample_callback(buffer->block_sampling_frequency, buffer->block_sampling_offset)) {
     return SANITIZER_PATCH_SUCCESS;
+  }
+
+  uint32_t thread_id = get_flat_thread_id();
+
+  if (thread_id == 0) {
+    // Finish one block
+    atomicAdd(&buffer->num_blocks, -1);
+
+    // Mark block begin
+    gpu_patch_record_t *record = gpu_queue_get(buffer); 
+
+    record->flags[0] = BLOCK_ENTER_FLAG;
+    record->flat_block_id = get_flat_block_id();
+    gpu_queue_push(buffer);
   }
 
   return SANITIZER_PATCH_SUCCESS;

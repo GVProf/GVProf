@@ -23,6 +23,10 @@ GENCODE_FLAGS += -gencode arch=compute_$(HIGHEST_SM),code=compute_$(HIGHEST_SM)
 
 all: $(PROJECT)
 
+ifdef PREFIX
+install: all
+endif
+
 $(PROJECT): %.fatbin : $(SRC_DIR)/%.cu
 	$(NVCC) $(CXXFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 

@@ -6,6 +6,8 @@
 
 #define MAX_ACCESS_SIZE (16)
 #define WARP_SIZE (32)
+#define BLOCK_ENTER_FLAG (0x20)
+#define BLOCK_EXIT_FLAG (0x30)
 
 typedef struct gpu_patch_record {
   uint64_t pc;
