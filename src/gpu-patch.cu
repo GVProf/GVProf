@@ -36,7 +36,7 @@ sanitizer_memory_access_callback
   uint32_t first_laneid = __ffs(active_mask) - 1;
 
   // 2. Read memory values
-  uint8_t buf[MAX_ACCESS_SIZE];
+  uint8_t buf[GPU_PATCH_MAX_ACCESS_SIZE];
   if (new_value == NULL) {
     // Read operation, old value can be on local memory, shared memory, or global memory
     if (flags & SANITIZER_MEMORY_DEVICE_FLAG_SHARED) {
@@ -57,6 +57,7 @@ sanitizer_memory_access_callback
     record = gpu_queue_get(buffer); 
 
     // 4. Assign basic values
+    record->flags = flags;
     record->active = active_mask;
     record->pc = pc;
     record->size = size;
@@ -71,7 +72,6 @@ sanitizer_memory_access_callback
 
   if (record != NULL) {
     record->address[laneid] = (uint64_t)address;
-    record->flags[laneid] = flags;
     for (uint32_t i = 0; i < size; ++i) {
       record->value[laneid][i] = buf[i];
     }
@@ -109,15 +109,16 @@ sanitizer_block_exit_callback
   uint32_t thread_id = get_flat_thread_id();
 
   if (thread_id == 0) {
-    // Finish one block
-    atomicAdd(&buffer->num_blocks, -1);
-
     // Mark block end
     gpu_patch_record_t *record = gpu_queue_get(buffer); 
 
-    record->flags[0] = BLOCK_EXIT_FLAG;
+    record->pc = pc;
+    record->flags = GPU_PATCH_BLOCK_EXIT_FLAG;
     record->flat_block_id = get_flat_block_id();
     gpu_queue_push(buffer);
+
+    // Finish one block
+    atomicAdd(&buffer->num_blocks, -1);
   }
 
   return SANITIZER_PATCH_SUCCESS;
@@ -145,13 +146,11 @@ sanitizer_block_enter_callback
   uint32_t thread_id = get_flat_thread_id();
 
   if (thread_id == 0) {
-    // Finish one block
-    atomicAdd(&buffer->num_blocks, -1);
-
     // Mark block begin
     gpu_patch_record_t *record = gpu_queue_get(buffer); 
 
-    record->flags[0] = BLOCK_ENTER_FLAG;
+    record->pc = pc;
+    record->flags = GPU_PATCH_BLOCK_ENTER_FLAG;
     record->flat_block_id = get_flat_block_id();
     gpu_queue_push(buffer);
   }

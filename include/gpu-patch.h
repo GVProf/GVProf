@@ -4,10 +4,19 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MAX_ACCESS_SIZE (16)
-#define WARP_SIZE (32)
-#define BLOCK_ENTER_FLAG (0x20)
-#define BLOCK_EXIT_FLAG (0x30)
+#define GPU_PATCH_MAX_ACCESS_SIZE (16)
+#define GPU_PATCH_WARP_SIZE (32)
+#define GPU_PATCH_BLOCK_ENTER_FLAG (0x20)
+#define GPU_PATCH_BLOCK_EXIT_FLAG (0x40)
+
+/*
+ * SANITIZER_MEMORY_DEVICE_FLAG_NONE      = 0,
+ * SANITIZER_MEMORY_DEVICE_FLAG_READ      = 0x1,
+ * SANITIZER_MEMORY_DEVICE_FLAG_WRITE     = 0x2,
+ * SANITIZER_MEMORY_DEVICE_FLAG_ATOMSYS   = 0x4,
+ * SANITIZER_MEMORY_DEVICE_FLAG_LOCAL     = 0x8,
+ * SANITIZER_MEMORY_DEVICE_FLAG_SHARED    = 0x10,
+ */
 
 typedef struct gpu_patch_record {
   uint64_t pc;
@@ -15,9 +24,9 @@ typedef struct gpu_patch_record {
   uint32_t active;
   uint32_t flat_thread_id;
   uint32_t flat_block_id;
-  uint64_t address[WARP_SIZE];
-  uint8_t value[WARP_SIZE][MAX_ACCESS_SIZE];  // STS.128->16 bytes
-  uint32_t flags[WARP_SIZE];
+  uint64_t address[GPU_PATCH_WARP_SIZE];
+  uint8_t value[GPU_PATCH_WARP_SIZE][GPU_PATCH_MAX_ACCESS_SIZE];  // STS.128->16 bytes
+  uint32_t flags;
 } gpu_patch_record_t;
 
 
