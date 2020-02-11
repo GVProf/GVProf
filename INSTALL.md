@@ -116,6 +116,8 @@ export PATH=$HPCTOOLKIT/bin/:$PATH
 git clone git@github.com:Jokeren/hpctoolkit-gpu-samples.git
 cd hpctoolkit-gpu-samples/cuda_vec_add
 export OMP_NUM_THREADS=1 [you can set any number of threads as you want]
+hpcrun -e gpu=nvidia ./main [dump cubins]
+hpcstruct --gpucfg yes hpctoolkit-main-measurement [analyze cubins]
 hpcrun -e gpu=nvidia,sanitizer ./main &> log [you can enable block sampling by nvidia-cuda-memory@sampling frequency]
 more log
 ```
