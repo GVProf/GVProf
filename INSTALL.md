@@ -97,7 +97,7 @@ cd /path/to/hpctoolkit
 mkdir build && cd build
 # Tip: check spack libraries' root->spack find --path.  
 # For example: --with-spack=/home/username/spack/opt/spack/linux-ubuntu18.04-zen/gcc-7.4.0/
-../configure --prefix=/path/to/install/hpctoolkit --with-dyninst=/path/to/dyninst/installation --with-cuda=/usr/local/cuda-10.1 --with-sanitizer=/path/to/sanitizer/lib --with-cupti=/usr/local/cuda-10.1/extras/CUPTI --with-gpu-patch=/path/to/install/gpu/patch/lib --with-spack=/path/to/spack/libraries/root --enable-develop
+../configure --prefix=/path/to/install/hpctoolkit --with-dyninst=/path/to/dyninst/installation --with-cuda=/usr/local/cuda-10.1 --with-sanitizer=/path/to/sanitizer/lib --with-cupti=/usr/local/cuda-10.1/extras/CUPTI --with-gpu-patch=/path/to/install/gpu/patch/lib --with-redshow=/path/to/redshow/lib  --with-spack=/path/to/spack/libraries/root --enable-develop
 make install -j8
 ```
 
@@ -117,7 +117,7 @@ git clone git@github.com:Jokeren/hpctoolkit-gpu-samples.git
 cd hpctoolkit-gpu-samples/cuda_vec_add
 export OMP_NUM_THREADS=1 [you can set any number of threads as you want]
 hpcrun -e gpu=nvidia ./main [dump cubins]
-hpcstruct --gpucfg yes hpctoolkit-main-measurement [analyze cubins]
+hpcstruct --gpucfg yes hpctoolkit-main-measurements [analyze cubins]
 hpcrun -e gpu=nvidia,sanitizer ./main &> log [you can enable block sampling by nvidia-cuda-memory@sampling frequency]
 more log
 ```
