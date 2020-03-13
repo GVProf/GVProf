@@ -58,7 +58,7 @@ sample_callback
 {
   if (frequency != 0) {
     // Sample a portion of blocks
-    return (get_flat_block_id() - offset) % frequency == 0;
+    return get_flat_block_id() % frequency == offset;
   }
   // Sample all blocks
   return true;

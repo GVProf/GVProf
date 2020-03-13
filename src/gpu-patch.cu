@@ -106,19 +106,23 @@ sanitizer_block_exit_callback
     return SANITIZER_PATCH_SUCCESS;
   }
 
-  uint32_t thread_id = get_flat_thread_id();
+  uint32_t active_mask = __activemask();
+  uint32_t laneid = get_laneid();
+  uint32_t first_laneid = __ffs(active_mask) - 1;
+  int32_t pop_count = __popc(active_mask);
 
-  if (thread_id == 0) {
-    // Mark block end
+  if (laneid == first_laneid) {
     gpu_patch_record_t *record = gpu_queue_get(buffer); 
 
     record->pc = pc;
     record->flags = GPU_PATCH_BLOCK_EXIT_FLAG;
     record->flat_block_id = get_flat_block_id();
+    record->flat_thread_id = get_flat_thread_id();
+    record->active = active_mask;
     gpu_queue_push(buffer);
 
-    // Finish one block
-    atomicAdd(&buffer->num_blocks, -1);
+    // Finish a bunch of threads
+    atomicAdd(&buffer->num_threads, -pop_count);
   }
 
   return SANITIZER_PATCH_SUCCESS;
@@ -143,15 +147,20 @@ sanitizer_block_enter_callback
     return SANITIZER_PATCH_SUCCESS;
   }
 
-  uint32_t thread_id = get_flat_thread_id();
+  uint32_t active_mask = __activemask();
+  uint32_t laneid = get_laneid();
+  uint32_t first_laneid = __ffs(active_mask) - 1;
 
-  if (thread_id == 0) {
+  if (laneid == first_laneid) {
     // Mark block begin
     gpu_patch_record_t *record = gpu_queue_get(buffer); 
 
     record->pc = pc;
     record->flags = GPU_PATCH_BLOCK_ENTER_FLAG;
     record->flat_block_id = get_flat_block_id();
+    record->flat_thread_id = get_flat_thread_id();
+    record->active = active_mask;
+
     gpu_queue_push(buffer);
   }
 
