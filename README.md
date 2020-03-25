@@ -1,1 +1,1 @@
-# hpctoolkit-cuda-memory-patch
+# hpctoolkit-gpu-patch
