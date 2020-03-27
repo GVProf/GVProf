@@ -4,3 +4,6 @@
 [submodule "dyninst"]
 	path = dyninst
 	url = git@github.com:mxz297/dyninst.git
+[submodule "samples"]
+	path = samples
+	url = git@github.com:FindHao/hpctoolkit-gpu-sanitizer-samples.git
