@@ -57,11 +57,12 @@ sample_callback
 )
 {
   if (frequency != 0) {
-    // Sample a portion of blocks
+    // 1  : Sample all blocks
+    // >1 : Sample a portion of blocks
     return get_flat_block_id() % frequency == offset;
   }
-  // Sample all blocks
-  return true;
+  // Skip all blocks
+  return false;
 }
 
 
