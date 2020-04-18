@@ -7,3 +7,6 @@
 [submodule "samples"]
 	path = samples
 	url = git@github.com:FindHao/hpctoolkit-gpu-sanitizer-samples.git
+[submodule "redshow"]
+	path = redshow
+	url = git@github.com:FindHao/redshow.git
