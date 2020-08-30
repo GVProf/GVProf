@@ -7,12 +7,12 @@ export PATH=${SPACK_ROOT}/bin:${PATH}
 source ${SPACK_ROOT}/share/spack/setup-env.sh
 ```
 
-## Install GVProf
+## Install gpu-patch
 
 ```bash
 git clone --recursive git@github.com:Jokeren/GVProf.git
 cd GVProf
-make PREFIX=/path/to/gvprof install
+make PREFIX=/path/to/gpu-patch install
 ```
 
 ## Install dependencies
@@ -57,7 +57,7 @@ cd /path/to/hpctoolkit
 mkdir build && cd build
 # Tip: check spack libraries' root->spack find --path.  
 # For example: --with-spack=/home/username/spack/opt/spack/linux-ubuntu18.04-zen/gcc-7.4.0/
-../configure --prefix=/path/to/hpctoolkit --with-dyninst=/path/to/dyninst --with-cuda=/usr/local/cuda-11.0 --with-sanitizer=/path/to/sanitizer --with-gvprof=/path/to/gvprof --with-redshow=/path/to/redshow  --with-spack=/path/to/spack/libraries/root
+../configure --prefix=/path/to/hpctoolkit --with-dyninst=/path/to/dyninst --with-cuda=/usr/local/cuda-11.0 --with-sanitizer=/path/to/sanitizer --with-gpu-patch=/path/to/gpu-patch --with-redshow=/path/to/redshow  --with-spack=/path/to/spack/libraries/root
 make install -j8
 ```
 
@@ -74,7 +74,7 @@ export HPCTOOLKIT=/path/to/hpctoolkit
 export PATH=$HPCTOOLKIT/bin/:$PATH
 ```
 
-### Test sanitizer
+## Test
 
 ```bash
 cd GVProf/samples/vectorAdd.f32
