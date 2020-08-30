@@ -1,5 +1,7 @@
 # GVProf
 
+[![DOI](https://zenodo.org/badge/194196140.svg)](https://zenodo.org/badge/latestdoi/194196140)
+
 GVPROF is a value profiler for NVIDIA GPUs to explore both temporal and spatial value redundancies in GPU-accelerated applications.
 
 ## Documentations
