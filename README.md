@@ -4,9 +4,9 @@ GVPROF is a value profiler for NVIDIA GPUs to explore both temporal and spatial 
 
 ## Documentations
 
-- [Install Guide](https://github.com/Jokeren/GVProf/blob/master/INSTALL.md)
-- [User Guide]
-- [Development Guide]
+- [Installation Guide](https://github.com/Jokeren/GVProf/blob/master/INSTALL.md)
+- [User's Guide]
+- [Developer's Guide]
 
 ## Papers
 
