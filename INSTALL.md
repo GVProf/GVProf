@@ -3,16 +3,17 @@
 ```bash
 git clone https://github.com/spack/spack.git
 export SPACK_ROOT=/path/to/spack
-export PATH=${SPACK_ROOT}/bin:${PATH}
 source ${SPACK_ROOT}/share/spack/setup-env.sh
 ```
 
 ## Install gpu-patch
 
+If you install cuda toolkit in somewhere else, you need to change the value of `SANITIZER_PATH`.
+
 ```bash
 git clone --recursive git@github.com:Jokeren/GVProf.git
 cd GVProf
-make PREFIX=/path/to/gpu-patch install
+make PREFIX=/path/to/gpu-patch/installation SANITIZER_PATH=/usr/local/cuda/Sanitizer/ install
 ```
 
 ## Install dependencies
@@ -43,9 +44,18 @@ intel-tbb
 ```bash
 cd dyninst/
 mkdir build && cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=/path/to/installation -DBoost_ROOT_DIR=/boost/path -DLibElf_ROOT_DIR=/path/to/elfutils -DTBB_ROOT_DIR=/path/to/intel-tbb
+cmake .. -DCMAKE_INSTALL_PREFIX=/path/to/dyninst/installation -DBoost_ROOT_DIR=/boost/path -DLibElf_ROOT_DIR=/path/to/elfutils -DTBB_ROOT_DIR=/path/to/intel-tbb
 # Before make, make sure there is no error in the last step
 make install -j8
+```
+
+## Install redshow
+
+```bash
+cd redshow
+# Tip: get boost libarary path 'spack find --path' and append include to that path
+export CPLUS_INCLUDE_PATH=/path/to/boost/installed/by/spack/include:/home/findhao/opt/gpu-patch/include/:$CPLUS_INCLUDE_PATH
+make install -j8 PREFIX=/path/to/redshow/installation
 ```
 
 ## Install hpctoolkit
@@ -57,7 +67,7 @@ cd /path/to/hpctoolkit
 mkdir build && cd build
 # Tip: check spack libraries' root->spack find --path.  
 # For example: --with-spack=/home/username/spack/opt/spack/linux-ubuntu18.04-zen/gcc-7.4.0/
-../configure --prefix=/path/to/hpctoolkit --with-dyninst=/path/to/dyninst --with-cuda=/usr/local/cuda-11.0 --with-sanitizer=/path/to/sanitizer --with-gpu-patch=/path/to/gpu-patch --with-redshow=/path/to/redshow  --with-spack=/path/to/spack/libraries/root
+../configure --prefix=/path/to/hpctoolkit/installation --with-dyninst=/path/to/dyninst/installation --with-cuda=/usr/local/cuda-11.0 --with-sanitizer=/path/to/sanitizer --with-gpu-patch=/path/to/gpu-patch/installation --with-redshow=/path/to/redshow/installation  --with-spack=/path/to/spack/libraries/root
 make install -j8
 ```
 
