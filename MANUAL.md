@@ -35,7 +35,7 @@ In the second pass, we instrument the cubins and invoke `redshow` redundancy ana
 
 ## Interpret profile data
 
-- Calling context view (only for CPU call stacks currently)
+- Calling context view (does not contain GPU calling context currently)
 
       hpcviewer hpctoolkit-<app-name>-database
       
