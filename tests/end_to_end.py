@@ -73,7 +73,7 @@ def redundancy_test(test_cases):
                 res = pipe_read(['tail', '-n', '1', red_file]).decode()
                 red = float(res.split(',')[0])
                 true_red = float(true_reds[i])
-                epsilon = 0.0 if true_red == 0.0 else abs(
+                epsilon = red if true_red == 0.0 else abs(
                     red - true_red) / true_red
                 if epsilon > test_case.tolerate:
                     os.chdir('../..')
