@@ -9,6 +9,7 @@ RedTestCase = namedtuple('RedTestCase', ['path', 'spatial_read_files', 'spatial_
 
 def redundancy_setup():
     red_test_cases = []
+    # real cases
     red_test_cases.append(RedTestCase(path='samples/bfs',
                                       spatial_read_files=[
                                           'spatial_read_t0.csv'],
@@ -41,6 +42,43 @@ def redundancy_setup():
                                       total=[19988592],
                                       sampling=False,
                                       tolerate=0.01))
+    # stress test
+    red_test_cases.append(RedTestCase(path='samples/stress',
+                                      spatial_read_files=['spatial_read_t0.csv', 'spatial_read_t1.csv', 'spatial_read_t2.csv', 'spatial_read_t3.csv',
+                                                          'spatial_read_t4.csv', 'spatial_read_t5.csv', 'spatial_read_t6.csv', 'spatial_read_t7.csv',
+                                                          'spatial_read_t8.csv', 'spatial_read_t9.csv', 'spatial_read_t10.csv', 'spatial_read_t11.csv',
+                                                          'spatial_read_t12.csv', 'spatial_read_t13.csv', 'spatial_read_t14.csv', 'spatial_read_t15.csv'],
+                                      spatial_read_reds=[8000, 8000, 8000, 8000,
+                                                         8000, 8000, 8000, 8000,
+                                                         8000, 8000, 8000, 8000,
+                                                         8000, 8000, 8000, 8000],
+                                      spatial_write_files=['spatial_write_t0.csv', 'spatial_write_t1.csv', 'spatial_write_t2.csv', 'spatial_write_t3.csv',
+                                                           'spatial_write_t4.csv', 'spatial_write_t5.csv', 'spatial_write_t6.csv', 'spatial_write_t7.csv',
+                                                           'spatial_write_t8.csv', 'spatial_write_t9.csv', 'spatial_write_t10.csv', 'spatial_write_t11.csv',
+                                                           'spatial_write_t12.csv', 'spatial_write_t13.csv', 'spatial_write_t14.csv', 'spatial_write_t15.csv'],
+                                      spatial_write_reds=[4000, 4000, 4000, 4000,
+                                                          4000, 4000, 4000, 4000,
+                                                          4000, 4000, 4000, 4000,
+                                                          4000, 4000, 4000, 4000],
+                                      temporal_read_files=['temporal_read_t0.csv', 'temporal_read_t1.csv', 'temporal_read_t2.csv', 'temporal_read_t3.csv',
+                                                           'temporal_read_t4.csv', 'temporal_read_t5.csv', 'temporal_read_t6.csv', 'temporal_read_t7.csv',
+                                                           'temporal_read_t8.csv', 'temporal_read_t9.csv', 'temporal_read_t10.csv', 'temporal_read_t11.csv',
+                                                           'temporal_read_t12.csv', 'temporal_read_t13.csv', 'temporal_read_t14.csv', 'temporal_read_t15.csv'],
+                                      temporal_read_reds=[79920000, 79920000, 79920000, 79920000,
+                                                          79920000, 79920000, 79920000, 79920000,
+                                                          79920000, 79920000, 79920000, 79920000,
+                                                          79920000, 79920000, 79920000, 79920000],
+                                      temporal_write_files=['temporal_write_t0.csv', 'temporal_write_t1.csv', 'temporal_write_t2.csv', 'temporal_write_t3.csv',
+                                                            'temporal_write_t4.csv', 'temporal_write_t5.csv', 'temporal_write_t6.csv', 'temporal_write_t7.csv',
+                                                            'temporal_write_t8.csv', 'temporal_write_t9.csv', 'temporal_write_t10.csv', 'temporal_write_t11.csv',
+                                                            'temporal_write_t12.csv', 'temporal_write_t13.csv', 'temporal_write_t14.csv', 'temporal_write_t15.csv'],
+                                      temporal_write_reds=[39960000, 39960000, 39960000, 39960000,
+                                                           39960000, 39960000, 39960000, 39960000,
+                                                           39960000, 39960000, 39960000, 39960000,
+                                                           39960000, 39960000, 39960000, 39960000],
+                                      total=[120000000],
+                                      sampling=False,
+                                      tolerate=0.0001))
 
     return red_test_cases
 
