@@ -42,6 +42,22 @@ def redundancy_setup():
                                       total=[19988592],
                                       sampling=False,
                                       tolerate=0.01))
+    red_test_cases.append(RedTestCase(path='samples/backprop',
+                                      spatial_read_files=[
+                                          'spatial_read_t0.csv'],
+                                      spatial_read_reds=[84039],
+                                      spatial_write_files=[
+                                          'spatial_write_t0.csv'],
+                                      spatial_write_reds=[21009],
+                                      temporal_read_files=[
+                                          'temporal_read_t0.csv'],
+                                      temporal_read_reds=[63058],
+                                      temporal_write_files=[
+                                          'temporal_write_t0.csv'],
+                                      temporal_write_reds=[0],
+                                      total=[400160],
+                                      sampling=True,
+                                      tolerate=0.05))
     # stress test
     red_test_cases.append(RedTestCase(path='samples/stress',
                                       spatial_read_files=['spatial_read_t0.csv', 'spatial_read_t1.csv', 'spatial_read_t2.csv', 'spatial_read_t3.csv',
@@ -101,7 +117,9 @@ def redundancy_test(test_cases):
         os.chdir(test_case.path)
         pipe_read(['make', 'clean'])
         pipe_read(['make'])
+        sampling = ''
         if test_case.sampling is True:
+            sampling = 'sampling'
             pipe_read(['bash', 'run_sampling.sh'])
         else:
             pipe_read(['bash', 'run.sh'])
@@ -119,7 +137,7 @@ def redundancy_test(test_cases):
                         test_case.path, red_file, true_red, red)
                     sys.exit(error)
                 else:
-                    print('Pass ' + test_case.path + ' ' + red_file)
+                    print('Pass ' + test_case.path + ' ' + red_file + ' ' + sampling)
 
         redundancy_compare(test_case.spatial_read_files,
                            test_case.spatial_read_reds)
