@@ -19,13 +19,13 @@ def redundancy_setup():
                                       spatial_write_reds=[7997516],
                                       temporal_read_files=[
                                           'temporal_read_t0.csv'],
-                                      temporal_read_reds=[5573898],
+                                      temporal_read_reds=[5603846],
                                       temporal_write_files=[
                                           'temporal_write_t0.csv'],
                                       temporal_write_reds=[0],
                                       total=[52653451],
                                       sampling=False,
-                                      tolerate=0.01))
+                                      tolerate=0.02))
     red_test_cases.append(RedTestCase(path='samples/backprop',
                                       spatial_read_files=[
                                           'spatial_read_t0.csv'],
@@ -112,8 +112,11 @@ def pipe_read(command):
     return stdout
 
 
-def redundancy_test(test_cases):
+def redundancy_test(test_cases, bench):
     for test_case in test_cases:
+        if bench is not None and bench != test_case.path:
+            continue
+
         os.chdir(test_case.path)
         pipe_read(['make', 'clean'])
         pipe_read(['make'])
@@ -150,10 +153,13 @@ def redundancy_test(test_cases):
         os.chdir('../..')
 
 
-def value_flow_test(test_cases):
+def value_flow_test(test_cases, bench):
     pass
 
+bench = None
+if len(sys.argv) > 1:
+    bench = str(sys.argv[1])
 
-redundancy_test(redundancy_setup())
+redundancy_test(redundancy_setup(), bench)
 
-value_flow_test(value_flow_setup())
+value_flow_test(value_flow_setup(), bench)
