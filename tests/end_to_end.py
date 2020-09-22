@@ -9,6 +9,23 @@ RedTestCase = namedtuple('RedTestCase', ['path', 'spatial_read_files', 'spatial_
 
 def redundancy_setup():
     red_test_cases = []
+    # unit case
+    red_test_cases.append(RedTestCase(path='samples/vectorAdd.f128',
+                                      spatial_read_files=[
+                                          'spatial_read_t0.csv'],
+                                      spatial_read_reds=[3],
+                                      spatial_write_files=[
+                                          'spatial_write_t0.csv'],
+                                      spatial_write_reds=[1],
+                                      temporal_read_files=[
+                                          'temporal_read_t0.csv'],
+                                      temporal_read_reds=[0],
+                                      temporal_write_files=[
+                                          'temporal_write_t0.csv'],
+                                      temporal_write_reds=[0],
+                                      total=[12],
+                                      sampling=False,
+                                      tolerate=0.0))
     # real cases
     red_test_cases.append(RedTestCase(path='samples/bfs',
                                       spatial_read_files=[
