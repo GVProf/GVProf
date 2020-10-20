@@ -1,0 +1,94 @@
+#!/bin/bash
+
+usage()
+{
+    cat <<EOF
+Usage:
+    gvprof [profiling options] [executable] [executable options]
+    options:
+    -h help
+    -e <profiling-event>
+      redundancy
+      value_flow
+    -j <cpu-threads> 
+      multi-threading analysis for binaries 
+EOF
+    exit 0
+}
+
+while test "x$1" != x
+do
+  arg="$1" ; shift
+  case "$arg" in
+    -v)
+      export GVPROF_VERBOSE=1
+      ;;
+    -j)
+      export GVPROF_THREADS=$1
+      shift
+      ;;
+    -e)
+      export GVPROF_EVENT=$1
+      shift
+      ;;
+    -h)
+      usage
+      exit
+      ;;
+    * )
+      set -- "$arg" "$@"
+      break
+      ;;
+  esac
+done
+
+GVPROF_EXEC=$1
+GVPROF_ARGS="${@:2}"
+
+if [ -z "$GVPROF_EXEC" ]
+then
+  echo "Empty executable"
+  exit
+fi
+
+if [ -z "$GVPROF_EVENT" ]
+then
+  echo "Empty event"
+  exit
+fi
+
+if [ -z "$GVPROF_THREADS" ]
+then
+  export GVPROF_THREADS=1
+fi
+
+if [ ! -z "$GVPROF_VERBOSE" ]
+then
+  export GVPROF_REDIRECT=/dev/tty
+else
+  export GVPROF_REDIRECT=/dev/null
+fi
+
+##Test
+#echo $GVPROF_EXEC
+#echo $GVPROF_ARGS
+#echo $GVPROF_THREADS
+#echo $GVPROF_EVENT
+
+MEASUREMENTS=gvprof-measurements
+DATABASE=gvprof-database
+echo "Make sure "$MEASUREMENTS" and "$DATABASE" is clean"
+
+echo "First pass: dump and analyze CPU and GPU binaries"
+
+hpcrun -e gpu=nvidia -o $MEASUREMENTS $GVPROF_EXEC $GVPROF_ARGS &> $GVPROF_REDIRECT
+rm -rf $MEASUREMENTS/*.hpcrun
+hpcstruct --gpucfg yes -j $GVPROF_THREADS $MEASUREMENTS &> $GVPROF_REDIRECT
+hpcstruct -j $GVPROF_THREADS $GVPROF_EXEC &> $GVPROF_REDIRECT
+
+echo "Second pass: profiling"
+
+hpcrun -e gpu=nvidia,$GVPROF_EVENT -o $MEASUREMENTS $GVPROF_EXEC $GVPROF_ARGS &> $GVPROF_REDIRECT
+hpcprof -S $GVPROF_EXEC".hpcstruct" -o $DATABASE $MEASUREMENTS &> $GVPROF_REDIRECT
+
+echo "Done..."
