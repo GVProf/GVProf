@@ -119,6 +119,7 @@ sanitizer_block_exit_callback
     record->flat_block_id = get_flat_block_id();
     record->flat_thread_id = get_flat_thread_id();
     record->active = active_mask;
+
     gpu_queue_push(buffer);
 
     // Finish a bunch of threads
