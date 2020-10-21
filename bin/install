@@ -1,0 +1,58 @@
+#!/bin/bash
+
+SOURCE_DIR=`pwd`
+DIR=""
+
+if [ $# -ne 1 ]
+then
+  if [ $# -eq 0 ]
+  then
+    DIR=`pwd`/gvprof
+  fi
+else
+  DIR=$1
+fi
+
+if [ -z "$DIR" ]
+then
+  echo "Wrong prefix"
+  exit
+fi
+
+mkdir $DIR && cd $DIR
+
+# Install spack
+git clone https://github.com/spack/spack.git
+export SPACK_ROOT=`pwd`/spack
+export PATH=${SPACK_ROOT}/bin:${PATH}
+source ${SPACK_ROOT}/share/spack/setup-env.sh
+
+# Install hpctoolkit dependencies
+spack install --only dependencies hpctoolkit ^dyninst@master
+
+# Install gpu-patch
+cd $SOURCE_DIR
+make PREFIX=$DIR/gpu-patch SANITIZER_PATH=/usr/local/cuda/Sanitizer/ install
+
+# Find spack and boost dir
+B=`spack find --path boost | tail -n 1 | cut -d ' ' -f 3`
+S=${B%/*}
+
+# Install redshow
+cd $SOURCE_DIR
+cd redshow
+make PREFIX=$DIR/redshow BOOST_DIR=$B install
+
+# install hpctoolkit
+cd $SOURCE_DIR
+cd hpctoolkit
+mkdir build && cd build
+../configure --prefix=$DIR/hpctoolkit --with-cuda=/usr/local/cuda \
+--with-sanitizer=/usr/local/cuda/Sanitizer --with-gpu-patch=$DIR/gpu-patch \
+--with-redshow=$DIR/redshow --with-spack=$S
+
+cd $SOURCE_DIR
+mkdir $DIR/bin
+mv ./bin/gvprof $DIR/bin/
+
+echo "Install in "$DIR"/bin/gvprof" 

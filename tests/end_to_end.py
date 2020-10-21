@@ -3,7 +3,7 @@ import subprocess
 import os
 import sys
 
-RedTestCase = namedtuple('RedTestCase', ['path', 'spatial_read_files', 'spatial_read_reds', 'spatial_write_files', 'spatial_write_reds',
+RedTestCase = namedtuple('RedTestCase', ['path', 'command', 'options', 'spatial_read_files', 'spatial_read_reds', 'spatial_write_files', 'spatial_write_reds',
                                          'temporal_read_files', 'temporal_read_reds', 'temporal_write_files', 'temporal_write_reds', 'total', 'sampling', 'tolerate'])
 
 
@@ -11,6 +11,8 @@ def redundancy_setup():
     red_test_cases = []
     # unit case
     red_test_cases.append(RedTestCase(path='samples/vectorAdd.f128',
+                                      command='./vectorAdd',
+                                      options='',
                                       spatial_read_files=[
                                           'spatial_read_t0.csv'],
                                       spatial_read_reds=[3],
@@ -24,10 +26,12 @@ def redundancy_setup():
                                           'temporal_write_t0.csv'],
                                       temporal_write_reds=[0],
                                       total=[12],
-                                      sampling=False,
+                                      sampling=0,
                                       tolerate=0.0))
     # real cases
     red_test_cases.append(RedTestCase(path='samples/bfs',
+                                      command='./bfs',
+                                      options='../data/graph1MW_6.txt',
                                       spatial_read_files=[
                                           'spatial_read_t0.csv'],
                                       spatial_read_reds=[27707987],
@@ -41,9 +45,11 @@ def redundancy_setup():
                                           'temporal_write_t0.csv'],
                                       temporal_write_reds=[0],
                                       total=[52653451],
-                                      sampling=False,
+                                      sampling=0,
                                       tolerate=0.02))
     red_test_cases.append(RedTestCase(path='samples/backprop',
+                                      command='./backprop',
+                                      options='65536',
                                       spatial_read_files=[
                                           'spatial_read_t0.csv'],
                                       spatial_read_reds=[4194507],
@@ -57,9 +63,11 @@ def redundancy_setup():
                                           'temporal_write_t0.csv'],
                                       temporal_write_reds=[0],
                                       total=[19988592],
-                                      sampling=False,
+                                      sampling=0,
                                       tolerate=0.01))
     red_test_cases.append(RedTestCase(path='samples/backprop',
+                                      command='./backprop',
+                                      options='65536',
                                       spatial_read_files=[
                                           'spatial_read_t0.csv'],
                                       spatial_read_reds=[84039],
@@ -73,10 +81,12 @@ def redundancy_setup():
                                           'temporal_write_t0.csv'],
                                       temporal_write_reds=[0],
                                       total=[400160],
-                                      sampling=True,
+                                      sampling=50,
                                       tolerate=0.05))
     # stress test
     red_test_cases.append(RedTestCase(path='samples/stress',
+                                      command='./main',
+                                      options='',
                                       spatial_read_files=['spatial_read_t0.csv', 'spatial_read_t1.csv', 'spatial_read_t2.csv', 'spatial_read_t3.csv',
                                                           'spatial_read_t4.csv', 'spatial_read_t5.csv', 'spatial_read_t6.csv', 'spatial_read_t7.csv',
                                                           'spatial_read_t8.csv', 'spatial_read_t9.csv', 'spatial_read_t10.csv', 'spatial_read_t11.csv',
@@ -129,23 +139,33 @@ def pipe_read(command):
     return stdout
 
 
+def cleanup():
+    pipe_read(['make', 'clean'])
+    pipe_read(['make'])
+    pipe_read(['rm', '-rf', 'gvprof-measurements*'])
+    pipe_read(['rm', '-rf', 'gvprof-database*'])
+
+
 def redundancy_test(test_cases, bench):
     for test_case in test_cases:
         if bench is not None and bench != test_case.path:
             continue
 
         os.chdir(test_case.path)
-        pipe_read(['make', 'clean'])
-        pipe_read(['make'])
+
+        cleanup()
         sampling = ''
-        if test_case.sampling is True:
+        if test_case.sampling != 0:
             sampling = 'sampling'
-            pipe_read(['bash', 'run_sampling.sh'])
+            pipe_read(['gvprof', '-e', 'redundancy@' +
+                       str(test_case.sampling), test_case.command, test_case.options])
         else:
-            pipe_read(['bash', 'run.sh'])
+            pipe_read(['gvprof', '-e', 'redundancy',
+                       test_case.command, test_case.options])
 
         def redundancy_compare(red_files, true_reds):
             for i, red_file in enumerate(red_files):
+                red_file = 'gvprof-measurements/redundancy/' + red_file
                 res = pipe_read(['tail', '-n', '1', red_file]).decode()
                 red = float(res.split(',')[0])
                 true_red = float(true_reds[i])
@@ -157,7 +177,8 @@ def redundancy_test(test_cases, bench):
                         test_case.path, red_file, true_red, red)
                     sys.exit(error)
                 else:
-                    print('Pass ' + test_case.path + ' ' + red_file + ' ' + sampling)
+                    print('Pass ' + test_case.path +
+                          ' ' + red_file + ' ' + sampling)
 
         redundancy_compare(test_case.spatial_read_files,
                            test_case.spatial_read_reds)
@@ -172,6 +193,7 @@ def redundancy_test(test_cases, bench):
 
 def value_flow_test(test_cases, bench):
     pass
+
 
 bench = None
 if len(sys.argv) > 1:

@@ -3,8 +3,8 @@ PROJECT ?= gpu-patch.fatbin
 
 # Location of the CUDA Toolkit
 CUDA_PATH ?= /usr/local/cuda
-SANITIZER_PATH ?= $(CUDA_PATH)/extras/Sanitizer
-CUPTI_PATH ?= $(CUDA_PATH)/extras/CUPTI
+SANITIZER_PATH ?= $(CUDA_PATH)/Sanitizer
+CUPTI_PATH ?= $(CUDA_PATH)
 
 NVCC := $(CUDA_PATH)/bin/nvcc
 
@@ -34,6 +34,7 @@ ifdef PREFIX
 install: $(PROJECT)
 	mkdir -p $(PREFIX)/lib
 	mkdir -p $(PREFIX)/include
+	mkdir -p $(PREFIX)/bin
 	cp -rf $(PROJECT) $(PREFIX)/lib
 	cp -rf include $(PREFIX)
 endif
