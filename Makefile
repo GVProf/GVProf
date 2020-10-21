@@ -1,6 +1,5 @@
 # Modified from https://github.com/Jokeren/compute-sanitizer-samples/tree/master/MemoryTracker
 PROJECT ?= gpu-patch.fatbin
-EXEC := gvprof
 
 # Location of the CUDA Toolkit
 CUDA_PATH ?= /usr/local/cuda
@@ -37,7 +36,6 @@ install: $(PROJECT)
 	mkdir -p $(PREFIX)/include
 	mkdir -p $(PREFIX)/bin
 	cp -rf $(PROJECT) $(PREFIX)/lib
-	cp -rf bin/$(EXEC) $(PREFIX)/bin
 	cp -rf include $(PREFIX)
 endif
 
