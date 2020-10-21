@@ -8,6 +8,18 @@ For CPU binaries, we recommend using `-O3 -g`.
 
 ## Profile applications
 
+### gvprof script
+
+The `gvprof` script includes basic profiling functions. For detailed profiling control, please refer to the next section.
+
+```
+gvprof -h
+# Currently we offer two modes
+gvprof -e <redundancy/value_flow> <app-name>
+```
+
+### Step-by-step profiling
+
 We invoke `hpcrun` to profile an application twice using the same input.
 In the first pass, we dump the cubins loaded at runtime and profile each kernel's running time.
 Then we invoke `hpcstruct` to analyze program structure and instruction dependency.
@@ -20,7 +32,7 @@ In the second pass, we instrument the cubins and invoke `redshow` redundancy ana
    
 - Second pass
 
-      hpcrun -e gpu=nvidia,sanitizer -ck <option1> -ck <option2> ... <app-name>
+      hpcrun -e gpu=nvidia,redundancy -ck <option1> -ck <option2> ... <app-name>
       hpcprof hpctoolkit-<app-name>-measurements    
 
 - Options
@@ -37,13 +49,11 @@ In the second pass, we instrument the cubins and invoke `redshow` redundancy ana
 
 - Calling context view (does not contain GPU calling context currently)
 
-      hpcviewer hpctoolkit-<app-name>-database
+      hpcviewer <database-dir>
       
 - Statistic view
 
-      less temporal_read_t<cpu-thread-id>.csv
-      less temporal_write_t<cpu-thread-id>.csv
-      less spatial_read_t<cpu-thread-id>.csv
-      less spatial_write_t<cpu-thread-id>.csv
-
- 
+      less <measurement-dir>/redundancy/temporal_read_t<cpu-thread-id>.csv
+      less <measurement-dir>/redundancy/temporal_write_t<cpu-thread-id>.csv
+      less <measurement-dir>/redundancy/spatial_read_t<cpu-thread-id>.csv
+      less <measurement-dir>/redundancy/spatial_write_t<cpu-thread-id>.csv
