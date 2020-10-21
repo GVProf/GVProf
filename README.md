@@ -7,6 +7,7 @@ GVProf is a value profiler for NVIDIA GPUs to explore both temporal and spatial 
 ## Quick Start
 
 ```bash
+git clone --recursive git@github.com:Jokeren/GVProf.git && cd GVProf
 ./bin/install
 cd samples/vectorAdd.f32
 make
