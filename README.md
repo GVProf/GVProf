@@ -4,6 +4,15 @@
 
 GVProf is a value profiler for NVIDIA GPUs to explore both temporal and spatial value redundancies in GPU-accelerated applications.
 
+## Quick Start
+
+```bash
+./bin/install
+cd samples/vectorAdd.f32
+make
+../../bin/gvprof -e redundancy ./vectorAdd
+```
+
 ## Documentations
 
 - [Installation Guide](https://github.com/Jokeren/GVProf/blob/master/INSTALL.md)
