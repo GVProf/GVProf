@@ -5,13 +5,14 @@ usage()
     cat <<EOF
 Usage:
     gvprof [profiling options] [executable] [executable options]
-    options:
+    profiling options:
     -h help
     -e <profiling-event>
       redundancy
       value_flow
     -j <cpu-threads> 
       multi-threading analysis for binaries 
+    -v verbose
 EOF
     exit 0
 }
