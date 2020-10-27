@@ -14,6 +14,7 @@ Usage:
     -j <cpu-threads> 
       multi-threading analysis for binaries 
     -v verbose
+      redirect output to gvprof.log
 EOF
     exit 0
 }
@@ -66,7 +67,7 @@ fi
 
 if [ ! -z "$GVPROF_VERBOSE" ]
 then
-  export GVPROF_REDIRECT=/dev/tty
+  export GVPROF_REDIRECT=./gvprof.log
 else
   export GVPROF_REDIRECT=/dev/null
 fi
