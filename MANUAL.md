@@ -14,8 +14,8 @@ The `gvprof` script includes basic profiling functions. For detailed profiling c
 
 ```
 gvprof -h
-# Currently we offer two modes
-gvprof -e <redundancy/value_flow> <app-name>
+# Currently we offer three modes
+gvprof -e <redundancy/data_flow/value_pattern> <app-name>
 ```
 
 ### Step-by-step profiling

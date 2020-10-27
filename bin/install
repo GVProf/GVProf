@@ -50,6 +50,7 @@ mkdir build && cd build
 ../configure --prefix=$DIR/hpctoolkit --with-cuda=/usr/local/cuda \
 --with-sanitizer=/usr/local/cuda/Sanitizer --with-gpu-patch=$DIR/gpu-patch \
 --with-redshow=$DIR/redshow --with-spack=$S
+make install -j8
 
 cd $SOURCE_DIR
 mkdir $DIR/bin

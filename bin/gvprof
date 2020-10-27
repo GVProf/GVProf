@@ -9,7 +9,8 @@ Usage:
     -h help
     -e <profiling-event>
       redundancy
-      value_flow
+      data_flow
+      value_pattern
     -j <cpu-threads> 
       multi-threading analysis for binaries 
     -v verbose
