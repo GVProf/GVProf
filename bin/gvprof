@@ -86,12 +86,12 @@ echo "First pass: dump and analyze CPU and GPU binaries"
 
 hpcrun -e gpu=nvidia -o $MEASUREMENTS $GVPROF_EXEC $GVPROF_ARGS &> $GVPROF_REDIRECT
 rm -rf $MEASUREMENTS/*.hpcrun
-hpcstruct --gpucfg yes -j $GVPROF_THREADS $MEASUREMENTS &> $GVPROF_REDIRECT
-hpcstruct -j $GVPROF_THREADS $GVPROF_EXEC &> $GVPROF_REDIRECT
+hpcstruct --gpucfg yes -j $GVPROF_THREADS $MEASUREMENTS &>> $GVPROF_REDIRECT
+hpcstruct -j $GVPROF_THREADS $GVPROF_EXEC &>> $GVPROF_REDIRECT
 
 echo "Second pass: profiling"
 
-hpcrun -e gpu=nvidia,$GVPROF_EVENT -o $MEASUREMENTS $GVPROF_EXEC $GVPROF_ARGS &> $GVPROF_REDIRECT
-hpcprof -S $GVPROF_EXEC".hpcstruct" -o $DATABASE $MEASUREMENTS &> $GVPROF_REDIRECT
+hpcrun -e gpu=nvidia,$GVPROF_EVENT -o $MEASUREMENTS $GVPROF_EXEC $GVPROF_ARGS &>> $GVPROF_REDIRECT
+hpcprof -S $GVPROF_EXEC".hpcstruct" -o $DATABASE $MEASUREMENTS &>> $GVPROF_REDIRECT
 
 echo "Done..."
