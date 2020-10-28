@@ -54,6 +54,10 @@ make install -j8
 
 cd $SOURCE_DIR
 mkdir $DIR/bin
+mkdir $DIR/python
 mv ./bin/gvprof $DIR/bin/
+mv ./python $DIR/python
+echo "python $DIR/python/gviewer.py $@" > $DIR/bin/gviewer
+chmod +x $DIR/bin/gviewer
 
 echo "Install in "$DIR"/bin/gvprof" 
