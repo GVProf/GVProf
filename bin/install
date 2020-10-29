@@ -19,7 +19,8 @@ then
   exit
 fi
 
-mkdir $DIR && cd $DIR
+mkdir $DIR
+cd $DIR
 
 # Install spack
 git clone https://github.com/spack/spack.git
@@ -28,11 +29,12 @@ export PATH=${SPACK_ROOT}/bin:${PATH}
 source ${SPACK_ROOT}/share/spack/setup-env.sh
 
 # Install hpctoolkit dependencies
-spack install --only dependencies hpctoolkit ^dyninst@master
+spack install --only dependencies hpctoolkit ^dyninst@master 
 
+CUDA_PATH ?= /usr/local/cuda/
 # Install gpu-patch
 cd $SOURCE_DIR
-make PREFIX=$DIR/gpu-patch SANITIZER_PATH=/usr/local/cuda/Sanitizer/ install
+make PREFIX=$DIR/gpu-patch SANITIZER_PATH=$CUDA_PATH/Sanitizer/ install
 
 # Find spack and boost dir
 B=`spack find --path boost | tail -n 1 | cut -d ' ' -f 3`
@@ -41,22 +43,23 @@ S=${B%/*}
 # Install redshow
 cd $SOURCE_DIR
 cd redshow
-make PREFIX=$DIR/redshow BOOST_DIR=$B install
+make PREFIX=$DIR/redshow BOOST_DIR=$B GPU_PATCH_DIR=$DIR/gpu-patch/ install
 
 # install hpctoolkit
 cd $SOURCE_DIR
 cd hpctoolkit
-mkdir build && cd build
-../configure --prefix=$DIR/hpctoolkit --with-cuda=/usr/local/cuda \
---with-sanitizer=/usr/local/cuda/Sanitizer --with-gpu-patch=$DIR/gpu-patch \
+mkdir build
+cd build
+../configure --prefix=$DIR/hpctoolkit --with-cuda=$CUDA_PATH \
+--with-sanitizer=$CUDA_PATH/Sanitizer --with-gpu-patch=$DIR/gpu-patch \
 --with-redshow=$DIR/redshow --with-spack=$S
 make install -j8
 
 cd $SOURCE_DIR
 mkdir $DIR/bin
 mkdir $DIR/python
-mv ./bin/gvprof $DIR/bin/
-mv ./python $DIR/python
+cp ./bin/gvprof $DIR/bin/
+cp -r ./python $DIR/python
 echo "python $DIR/python/gviewer.py $@" > $DIR/bin/gviewer
 chmod +x $DIR/bin/gviewer
 
