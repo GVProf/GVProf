@@ -1,4 +1,3 @@
-
 import argparse
 import sys
 import pygraphviz as pgv
@@ -51,6 +50,9 @@ def create_graph(args):
     for edge in G.edges():
         label = ''
         for key, value in edge.attr.items():
+            if key == 'edge_type' and value == 'READ':
+              label = 'EDGE_TYPE: READ'
+              break
             label += key.upper() + ': ' + value + '\n'
         edge.attr['label'] = label
 
