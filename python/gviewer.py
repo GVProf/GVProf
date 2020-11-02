@@ -10,7 +10,7 @@ def format_context(context, choice, known, leaf):
   frames = context.splitlines()
   for frame in frames[::-1]:
     line, func = frame.split('\t')
-    if known is True and line.find('Unknown') == 0:
+    if known is True and (line.find('Unknown') == 0 or line.find('<unknown file>') == 0):
         continue
     if choice == 'path':
         func = ''
@@ -49,10 +49,10 @@ def create_graph(args):
 
     for edge in G.edges():
         label = ''
-        for key, value in edge.attr.items():
-            if key == 'edge_type' and value == 'READ':
-              label = 'EDGE_TYPE: READ'
-              break
+        if edge.attr['edge_type'] == 'READ':
+          label = 'EDGE_TYPE: READ\nMEMORY_NODE_ID: ' + str(edge.attr['memory_node_id'])
+        else:
+          for key, value in edge.attr.items():
             label += key.upper() + ': ' + value + '\n'
         edge.attr['label'] = label
 
