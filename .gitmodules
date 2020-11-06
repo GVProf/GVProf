@@ -10,3 +10,6 @@
 [submodule "redshow"]
 	path = redshow
 	url = git@github.com:FindHao/redshow.git
+[submodule "jquery.graphviz.svg"]
+	path = jquery.graphviz.svg
+	url = git@github.com:Jokeren/jquery.graphviz.svg.git
