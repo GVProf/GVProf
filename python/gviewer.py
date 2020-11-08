@@ -31,7 +31,7 @@ def format_context(context, choice, known, leaf):
 
 def format_graph(args):
     file_path = args.file
-    G = pgv.AGraph(file_path)
+    G = pgv.AGraph(file_path, strict=False)
 
     for node in G.nodes():
         for key, value in node.attr.items():
@@ -67,21 +67,71 @@ def create_plain_graph(G):
     return G
 
 
+def color_edge_redundancy(G):
+    for edge in G.edges():
+        if float(edge.attr['redundancy']) <= 0.33:
+            edge.attr['color'] = '#cddc39'
+            edge.attr['fillcolor'] = '#cddc39'
+        elif float(edge.attr['redundancy']) <= 0.66:
+            edge.attr['color'] = '#fffa55'
+            edge.attr['fillcolor'] = '#fffa55'
+        elif float(edge.attr['redundancy']) <= 0.99:
+            edge.attr['color'] = '#fdcc3a'
+            edge.attr['fillcolor'] = '#fdcc3a'
+        else:
+            edge.attr['color'] = '#f91100'
+            edge.attr['fillcolor'] = '#f91100'
+    return G
+
+
 def create_pretty_graph(G):
-    G.graph_attr['bgcolor'] = '#2e3e56'
+    #G.graph_attr['bgcolor'] = '#2e3e56'
     G.graph_attr['pad'] = '0.5'
 
+    G = color_edge_redundancy(G)
+
     for node in G.nodes():
-        node.attr['shape'] = 'circle'
+        if node.attr['node_type'] == 'MEMORY':
+            node.attr['shape'] = 'box'
+        elif node.attr['node_type'] == 'KERNEL':
+            node.attr['shape'] = 'ellipse'
+        elif node.attr['node_type'] == 'MEMCPY' or node.attr['node_type'] == 'MEMSET':
+            node.attr['shape'] = 'circle'
+        else:
+            node.attr['shape'] = 'box'
+            node.attr['label'] = node.attr['node_type']
         node.attr['width'] = '0.6'
         node.attr['style'] = 'filled'
-        node.attr['fillcolor'] = '#edad56'
-        node.attr['color'] = '#edad56'
         node.attr['penwidth'] = '3'
         node.attr['tooltip'] = node.attr['context'].replace('\l', '&#10;')
     
+    # Combine read write edges
+    rw_edges = dict()
     for edge in G.edges():
-        edge.attr['color'] = '#fcfcfc'
+        if (edge[0], edge[1], edge.attr['memory_node_id']) in rw_edges:
+            rw_edge = rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])]
+            redundancy = float(rw_edge[1]) + float(edge.attr['redundancy'])
+            overwrite = float(rw_edge[2]) + float(edge.attr['overwrite'])
+            rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])] = (True, str(redundancy), str(overwrite))           
+        else:
+            rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])] = (False, edge.attr['redundancy'], edge.attr['overwrite'])
+    for edge, rw in rw_edges.items():
+        if rw[0]:
+            G.delete_edge(edge[0], edge[1])
+            
+    for edge in G.edges():
+        tooltip = 'MEMORY_NODE_ID: ' + edge.attr['memory_node_id'] + '\l'
+        if rw_edges[edge[0], edge[1], edge.attr['memory_node_id']][0]:
+            rw_edge = rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])]
+            tooltip += 'READ \& WRITE' + '\l'
+            tooltip += 'REDUNDANCY: ' + str(rw_edge[1]) + '\l'
+            tooltip += 'OVERWRITE: ' + str(rw_edge[2]) + '\l'
+        else:
+            tooltip += edge.attr['edge_type'] + '\l'        
+            tooltip += 'REDUNDANCY: ' + str(edge.attr['redundancy']) + '\l'
+            tooltip += 'OVERWRITE: ' + str(edge.attr['overwrite']) + '\l'
+        tooltip.replace('\l', '&#10;')
+        edge.attr['tooltip'] = tooltip
         edge.attr['pendwidth'] = '2'
         edge.attr['fontname'] = 'helvetica Neue Ultra Light'
 
