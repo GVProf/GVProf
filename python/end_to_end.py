@@ -126,9 +126,9 @@ def redundancy_setup():
     return red_test_cases
 
 
-def value_flow_setup():
-    value_flow_cases = []
-    return value_flow_cases
+def data_flow_setup():
+    data_flow_cases = []
+    return data_flow_cases
 
 
 def pipe_read(command):
@@ -191,7 +191,7 @@ def redundancy_test(test_cases, bench):
         os.chdir('../..')
 
 
-def value_flow_test(test_cases, bench):
+def data_flow_test(test_cases, bench):
     pass
 
 
@@ -201,4 +201,4 @@ if len(sys.argv) > 1:
 
 redundancy_test(redundancy_setup(), bench)
 
-value_flow_test(value_flow_setup(), bench)
+data_flow_test(data_flow_setup(), bench)
