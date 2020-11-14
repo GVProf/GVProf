@@ -31,7 +31,7 @@ source ${SPACK_ROOT}/share/spack/setup-env.sh
 # Install hpctoolkit dependencies
 spack install --only dependencies hpctoolkit ^dyninst@master 
 
-CUDA_PATH ?= /usr/local/cuda/
+CUDA_PATH=/usr/local/cuda/
 # Install gpu-patch
 cd $SOURCE_DIR
 make PREFIX=$DIR/gpu-patch SANITIZER_PATH=$CUDA_PATH/Sanitizer/ install
