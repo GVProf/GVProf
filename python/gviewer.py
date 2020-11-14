@@ -58,7 +58,8 @@ def create_plain_graph(G):
     for edge in G.edges():
         label = ''
         if edge.attr['edge_type'] == 'READ':
-          label = 'EDGE_TYPE: READ\nMEMORY_NODE_ID: ' + str(edge.attr['memory_node_id'])
+          label = 'EDGE_TYPE: READ\nMEMORY_NODE_ID: ' + \
+              str(edge.attr['memory_node_id'])
         else:
           for key, value in edge.attr.items():
             label += key.upper() + ': ' + value + '\n'
@@ -84,11 +85,53 @@ def color_edge_redundancy(G):
     return G
 
 
+def apportion_edge_width(G):
+    edges = G.edges()
+    max_edge = max(edges, key=lambda edge: float(
+        edge.attr['overwrite']) * float(edge.attr['count']))
+    max_width = 6.0
+    max_weight = float(max_edge.attr['overwrite']) * \
+        float(max_edge.attr['count'])
+
+    for edge in edges:
+        width = float(edge.attr['overwrite']) * \
+            float(edge.attr['count']) / max_weight * max_width
+        if width < 1.0:
+            edge.attr['penwidth'] = 1.0
+        else:
+            edge.attr['penwidth'] = width
+
+    return G
+
+
+def apportion_node_width(G):
+    nodes = G.nodes()
+    max_node = max(nodes, key=lambda node: float(node.attr['count']))
+    max_width = 1.2
+    max_weight = float(max_node.attr['count'])
+
+    for node in nodes:
+        width = float(node.attr['count']) / max_weight * max_width
+        if width < 1.0:
+            node.attr['width'] = 0.6
+        else:
+            node.attr['width'] = width
+
+    return G
+
+
+def add_duplicate_edges(G):
+    for node in G.nodes():
+        dup = node.attr['duplicate']
+        dup_nodes = duplicate.split(';')
+        for dup_node in dup_nodes:
+            print(dup_node)
+    return G
+
+
 def create_pretty_graph(G):
     #G.graph_attr['bgcolor'] = '#2e3e56'
     G.graph_attr['pad'] = '0.5'
-
-    G = color_edge_redundancy(G)
 
     for node in G.nodes():
         if node.attr['node_type'] == 'MEMORY':
@@ -100,11 +143,15 @@ def create_pretty_graph(G):
         else:
             node.attr['shape'] = 'box'
             node.attr['label'] = node.attr['node_type']
-        node.attr['width'] = '0.6'
         node.attr['style'] = 'filled'
-        node.attr['penwidth'] = '3'
-        node.attr['tooltip'] = node.attr['context'].replace('\l', '&#10;')
-    
+        node.attr['penwidth'] = '0'
+        tooltip = ''
+        tooltip += 'TYPE: ' + node.attr['node_type'] + '\l'
+        tooltip += 'COUNT: ' + node.attr['count'] + '\l'
+        tooltip += 'CONTEXT: \l' + node.attr['context']
+        tooltip.replace('\l', '&#10;')
+        node.attr['tooltip'] = tooltip
+
     # Combine read write edges
     rw_edges = dict()
     for edge in G.edges():
@@ -112,28 +159,41 @@ def create_pretty_graph(G):
             rw_edge = rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])]
             redundancy = float(rw_edge[1]) + float(edge.attr['redundancy'])
             overwrite = float(rw_edge[2]) + float(edge.attr['overwrite'])
-            rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])] = (True, str(redundancy), str(overwrite))           
+            count = int(rw_edge[3]) + int(edge.attr['count'])
+            rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])] = (
+                True, str(redundancy), str(overwrite), str(count))
         else:
-            rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])] = (False, edge.attr['redundancy'], edge.attr['overwrite'])
+            rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])] = (
+                False, edge.attr['redundancy'], edge.attr['overwrite'], edge.attr['count'])
     for edge, rw in rw_edges.items():
         if rw[0]:
             G.delete_edge(edge[0], edge[1])
-            
+
     for edge in G.edges():
         tooltip = 'MEMORY_NODE_ID: ' + edge.attr['memory_node_id'] + '\l'
         if rw_edges[edge[0], edge[1], edge.attr['memory_node_id']][0]:
             rw_edge = rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])]
-            tooltip += 'READ \& WRITE' + '\l'
+            tooltip += 'TYPE: READ \& WRITE' + '\l'
             tooltip += 'REDUNDANCY: ' + str(rw_edge[1]) + '\l'
             tooltip += 'OVERWRITE: ' + str(rw_edge[2]) + '\l'
+            tooltip += 'BYTES: ' + str(rw_edge[3]) + '\l'
         else:
-            tooltip += edge.attr['edge_type'] + '\l'        
+            tooltip += 'TYPE: ' + edge.attr['edge_type'] + '\l'
             tooltip += 'REDUNDANCY: ' + str(edge.attr['redundancy']) + '\l'
             tooltip += 'OVERWRITE: ' + str(edge.attr['overwrite']) + '\l'
+            tooltip += 'BYTES: ' + str(edge.attr['count']) + '\l'
         tooltip.replace('\l', '&#10;')
         edge.attr['tooltip'] = tooltip
-        edge.attr['pendwidth'] = '2'
         edge.attr['fontname'] = 'helvetica Neue Ultra Light'
+
+    G = apportion_node_width(G)
+
+    G = color_edge_redundancy(G)
+
+    G = apportion_edge_width(G)
+
+    # duplicate
+    G = add_duplicate_edges(G)
 
     return G
 
