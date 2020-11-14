@@ -13,6 +13,8 @@ Usage:
       value_pattern
     -j <cpu-threads> 
       multi-threading analysis for binaries 
+    -ck <control-knob>
+      control knob values
     -v verbose
       redirect output to gvprof.log
 EOF
@@ -32,6 +34,10 @@ do
       ;;
     -e)
       export GVPROF_EVENT=$1
+      shift
+      ;;
+    -ck)
+      export GVPROF_CONTROL_KNOBS="$GVPROF_CONTROL_KNOBS -ck $1"
       shift
       ;;
     -h)
@@ -77,10 +83,13 @@ fi
 #echo $GVPROF_ARGS
 #echo $GVPROF_THREADS
 #echo $GVPROF_EVENT
+#echo $GVPROF_CONTROL_KNOBS
 
 MEASUREMENTS=gvprof-measurements
 DATABASE=gvprof-database
 echo "Make sure "$MEASUREMENTS" and "$DATABASE" is clean"
+rm -rf $MEASUREMENTS
+rm -rf $DATABASE
 
 echo "First pass: dump and analyze CPU and GPU binaries"
 
@@ -91,7 +100,7 @@ hpcstruct -j $GVPROF_THREADS $GVPROF_EXEC -o $GVPROF_EXEC".hpcstruct" &>> $GVPRO
 
 echo "Second pass: profiling"
 
-hpcrun -e gpu=nvidia,$GVPROF_EVENT -o $MEASUREMENTS $GVPROF_EXEC $GVPROF_ARGS &>> $GVPROF_REDIRECT
+hpcrun -e gpu=nvidia,$GVPROF_EVENT -o $MEASUREMENTS $GVPROF_CONTROL_KNOBS $GVPROF_EXEC $GVPROF_ARGS &>> $GVPROF_REDIRECT
 hpcprof -S $GVPROF_EXEC".hpcstruct" -o $DATABASE $MEASUREMENTS &>> $GVPROF_REDIRECT
 
 echo "Done..."
