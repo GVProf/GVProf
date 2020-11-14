@@ -120,13 +120,16 @@ def apportion_node_width(G):
     return G
 
 
-def add_duplicate_edges(G):
-    for node in G.nodes():
-        dup = node.attr['duplicate']
-        dup_nodes = duplicate.split(';')
-        for dup_node in dup_nodes:
-            print(dup_node)
-    return G
+def label_node_duplicate(node):
+    dup = node.attr['duplicate']
+    dup_entries = dup.split(';')
+    from_node = node.get_name()
+    label = ''
+    for dup_entry in dup_entries:
+        if len(dup_entry) > 0:
+            dup_node = dup_entry.split(',')[0]
+            label += dup_node + ' '
+    return 'DUPLICATE: ' + label
 
 
 def create_pretty_graph(G):
@@ -148,6 +151,9 @@ def create_pretty_graph(G):
         tooltip = ''
         tooltip += 'TYPE: ' + node.attr['node_type'] + '\l'
         tooltip += 'COUNT: ' + node.attr['count'] + '\l'
+        duplicate = label_node_duplicate(node)
+        if duplicate != '':
+            tooltip += duplicate + '\l'
         tooltip += 'CONTEXT: \l' + node.attr['context']
         tooltip.replace('\l', '&#10;')
         node.attr['tooltip'] = tooltip
@@ -191,9 +197,6 @@ def create_pretty_graph(G):
     G = color_edge_redundancy(G)
 
     G = apportion_edge_width(G)
-
-    # duplicate
-    G = add_duplicate_edges(G)
 
     return G
 
