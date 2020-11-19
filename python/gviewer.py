@@ -43,6 +43,45 @@ def format_graph(args):
     return G
 
 
+def prune_graph(G):
+    # 1. prune no edge nodes
+    nodes_exist = dict()
+    for node in G.nodes():
+        nodes_exist[node] = False
+
+    for edge in G.edges():
+        nodes_exist[edge[0]] = True
+        nodes_exist[edge[1]] = True
+
+    for k, v in nodes_exist.items():
+        if v == False:
+            G.delete_node(k)
+
+    # 2. prune low importance nodes
+    # reserve important edges
+    RED_THRESHOLD = 0.3
+    nodes_reserve = dict()
+    for edge in G.edges():
+        if float(edge.attr['redundancy']) > RED_THRESHOLD:
+            nodes_reserve[edge[0]] = True
+            nodes_reserve[edge[1]] = True
+
+    total_count = 0
+    for node in G.nodes():
+        total_count += float(node.attr['count'])
+
+    nodes_importance = dict()
+    for node in G.nodes():
+        nodes_importance[node] = float(node.attr['count']) / total_count
+
+    COUNT_THRESHOLD = 0.01
+    for k, v in nodes_importance.items():
+        if (k not in nodes_reserve) and (v < COUNT_THRESHOLD):
+            G.delete_node(k)
+
+    return G
+
+
 def create_plain_graph(G):
     for node in G.nodes():
         name = node.get_name()
@@ -68,71 +107,67 @@ def create_plain_graph(G):
     return G
 
 
-def color_edge_redundancy(G):
-    for edge in G.edges():
-        if float(edge.attr['redundancy']) <= 0.33:
-            edge.attr['color'] = '#cddc39'
-            edge.attr['fillcolor'] = '#cddc39'
-        elif float(edge.attr['redundancy']) <= 0.66:
-            edge.attr['color'] = '#fffa55'
-            edge.attr['fillcolor'] = '#fffa55'
-        elif float(edge.attr['redundancy']) <= 0.99:
-            edge.attr['color'] = '#fdcc3a'
-            edge.attr['fillcolor'] = '#fdcc3a'
-        else:
-            edge.attr['color'] = '#f91100'
-            edge.attr['fillcolor'] = '#f91100'
-    return G
-
-
-def apportion_edge_width(G):
-    edges = G.edges()
-    max_edge = max(edges, key=lambda edge: float(
-        edge.attr['overwrite']) * float(edge.attr['count']))
-    max_width = 6.0
-    max_weight = float(max_edge.attr['overwrite']) * \
-        float(max_edge.attr['count'])
-
-    for edge in edges:
-        width = float(edge.attr['overwrite']) * \
-            float(edge.attr['count']) / max_weight * max_width
-        if width < 1.0:
-            edge.attr['penwidth'] = 1.0
-        else:
-            edge.attr['penwidth'] = width
-
-    return G
-
-
-def apportion_node_width(G):
-    nodes = G.nodes()
-    max_node = max(nodes, key=lambda node: float(node.attr['count']))
-    max_width = 1.2
-    max_weight = float(max_node.attr['count'])
-
-    for node in nodes:
-        width = float(node.attr['count']) / max_weight * max_width
-        if width < 1.0:
-            node.attr['width'] = 0.6
-        else:
-            node.attr['width'] = width
-
-    return G
-
-
-def label_node_duplicate(node):
-    dup = node.attr['duplicate']
-    dup_entries = dup.split(';')
-    from_node = node.get_name()
-    label = ''
-    for dup_entry in dup_entries:
-        if len(dup_entry) > 0:
-            dup_node = dup_entry.split(',')[0]
-            label += dup_node + ' '
-    return 'DUPLICATE: ' + label
-
-
 def create_pretty_graph(G):
+    def color_edge_redundancy(G):
+        for edge in G.edges():
+            if float(edge.attr['redundancy']) <= 0.33:
+                edge.attr['color'] = '#cddc39'
+                edge.attr['fillcolor'] = '#cddc39'
+            elif float(edge.attr['redundancy']) <= 0.66:
+                edge.attr['color'] = '#fffa55'
+                edge.attr['fillcolor'] = '#fffa55'
+            elif float(edge.attr['redundancy']) <= 0.99:
+                edge.attr['color'] = '#fdcc3a'
+                edge.attr['fillcolor'] = '#fdcc3a'
+            else:
+                edge.attr['color'] = '#f91100'
+                edge.attr['fillcolor'] = '#f91100'
+        return G
+
+    def apportion_edge_width(G):
+        edges = G.edges()
+        max_edge = max(edges, key=lambda edge: float(
+            edge.attr['overwrite']) * float(edge.attr['count']))
+        max_width = 6.0
+        max_weight = float(max_edge.attr['overwrite']) * \
+            float(max_edge.attr['count'])
+
+        for edge in edges:
+            width = float(edge.attr['overwrite']) * \
+                float(edge.attr['count']) / max_weight * max_width
+            if width < 1.0:
+                edge.attr['penwidth'] = 1.0
+            else:
+                edge.attr['penwidth'] = width
+
+        return G
+
+    def apportion_node_width(G):
+        nodes = G.nodes()
+        max_node = max(nodes, key=lambda node: float(node.attr['count']))
+        max_width = 1.2
+        max_weight = float(max_node.attr['count'])
+
+        for node in nodes:
+            width = float(node.attr['count']) / max_weight * max_width
+            if width < 1.0:
+                node.attr['width'] = 0.6
+            else:
+                node.attr['width'] = width
+
+        return G
+
+    def label_node_duplicate(node):
+        dup = node.attr['duplicate']
+        dup_entries = dup.split(';')
+        from_node = node.get_name()
+        label = ''
+        for dup_entry in dup_entries:
+            if len(dup_entry) > 0:
+                dup_node = dup_entry.split(',')[0]
+                label += dup_node + ' '
+        return 'DUPLICATE: ' + label
+
     #G.graph_attr['bgcolor'] = '#2e3e56'
     G.graph_attr['pad'] = '0.5'
 
@@ -211,17 +246,37 @@ parser.add_argument('-l', '--leaf', action='store_true', default=False,
                     help='show only leaf function')
 parser.add_argument('-of', '--output-format',
                     choices=['svg', 'png', 'pdf'], default='svg', help='output format')
+parser.add_argument('-p', '--prune', action='store_true', default=False)
+parser.add_argument(
+    '-ly', '--layout', choices=['dot', 'neato', 'circo'], default='dot', help='svg layout')
 parser.add_argument('-pr', '--pretty', action='store_true', default=False,
                     help='tune output graph')
+parser.add_argument('-v', '--verbose', action='store_true', help='print log')
 args = parser.parse_args()
 
+if args.verbose:
+  print('Format graph...')
 G = format_graph(args)
+
+if args.prune:
+  if args.verbose:
+    print('Prune  graph: {} nodes and {} edges...'.format(
+        len(G.nodes()), len(G.edges())))
+  G = prune_graph(G)
+
+if args.verbose:
+  print('Refine graph...')
 if args.pretty:
     G = create_pretty_graph(G)
 else:
     G = create_plain_graph(G)
 
-G.layout(prog='dot')
+if args.verbose:
+  print('Organize graph: {} nodes and {} edges...'.format(
+      len(G.nodes()), len(G.edges())))
+G.layout(prog=args.layout)
 
+if args.verbose:
+  print('Output graph...')
 #G.write(args.file + '.dot')
 G.draw(args.file + '.' + args.output_format)
