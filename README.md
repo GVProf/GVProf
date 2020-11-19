@@ -14,7 +14,7 @@ make
 ../../bin/gvprof -e redundancy ./vectorAdd
 ```
 
-## Documentations
+## Documentation
 
 - [Installation Guide](https://github.com/Jokeren/GVProf/blob/master/INSTALL.md)
 - [User's Guide](https://github.com/Jokeren/GVProf/blob/master/MANUAL.md)
