@@ -1,12 +1,12 @@
 [submodule "hpctoolkit"]
 	path = hpctoolkit
-	url = https://github.com:Jokeren/hpctoolkit.git
+	url = https://github.com/Jokeren/hpctoolkit.git
 [submodule "samples"]
 	path = samples
-	url = https://github.com:FindHao/hpctoolkit-gpu-sanitizer-samples.git
+	url = https://github.com/FindHao/hpctoolkit-gpu-sanitizer-samples.git
 [submodule "redshow"]
 	path = redshow
-	url = https://github.com:FindHao/redshow.git
+	url = https://github.com/FindHao/redshow.git
 [submodule "jquery.graphviz.svg"]
 	path = jquery.graphviz.svg
-	url = https://github.com:Jokeren/jquery.graphviz.svg.git
+	url = https://github.com/Jokeren/jquery.graphviz.svg.git
