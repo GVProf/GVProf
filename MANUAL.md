@@ -43,7 +43,7 @@ In the second pass, we instrument the cubins and invoke `redshow` redundancy ana
       HPCRUN_SANITIZER_PC_VIEWS=<number of top redundant values per pc, default: 0>
       HPCRUN_SANITIZER_MEM_VIEWS=<number of top redundant values per memory object, default: 0>
       HPCRUN_SANITIZER_DEFAULT_TYPE=<default data type of memory objects, default: float>
-      HPCRUN_SANITIZER_KERNEL_SAMPLING_FREQUENCY=<kernel sampling frequency, default: -1>
+      HPCRUN_SANITIZER_KERNEL_SAMPLING_FREQUENCY=<kernel sampling frequency, default: 1>
       HPCRUN_SANITIZER_WHITELIST=<functions to be monitored during execution, default: 0>
       HPCRUN_SANITIZER_BLACKLIST=<functions not monitored during execution, default: 0>
 
