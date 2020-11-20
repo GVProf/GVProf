@@ -43,7 +43,7 @@ def format_graph(args):
     return G
 
 
-def prune_graph(G):
+def prune_graph(G, node_threshold=0.0, edge_threshold=0.0):
     # 1. prune no edge nodes
     nodes_exist = dict()
     for node in G.nodes():
@@ -59,10 +59,9 @@ def prune_graph(G):
 
     # 2. prune low importance nodes
     # reserve important edges
-    RED_THRESHOLD = 0.3
     nodes_reserve = dict()
     for edge in G.edges():
-        if float(edge.attr['redundancy']) > RED_THRESHOLD:
+        if float(edge.attr['redundancy']) > edge_threshold:
             nodes_reserve[edge[0]] = True
             nodes_reserve[edge[1]] = True
 
@@ -74,9 +73,8 @@ def prune_graph(G):
     for node in G.nodes():
         nodes_importance[node] = float(node.attr['count']) / total_count
 
-    COUNT_THRESHOLD = 0.01
     for k, v in nodes_importance.items():
-        if (k not in nodes_reserve) and (v < COUNT_THRESHOLD):
+        if (k not in nodes_reserve) and (v < node_threshold):
             G.delete_node(k)
 
     return G
@@ -246,7 +244,8 @@ parser.add_argument('-l', '--leaf', action='store_true', default=False,
                     help='show only leaf function')
 parser.add_argument('-of', '--output-format',
                     choices=['svg', 'png', 'pdf'], default='svg', help='output format')
-parser.add_argument('-p', '--prune', action='store_true', default=False)
+parser.add_argument('-pn', '--prune-node', default=0.0, help='prune node lower bound')
+parser.add_argument('-pe', '--prune-edge', default=0.0, help='prune edge lower bound')
 parser.add_argument(
     '-ly', '--layout', choices=['dot', 'neato', 'circo'], default='dot', help='svg layout')
 parser.add_argument('-pr', '--pretty', action='store_true', default=False,
@@ -258,11 +257,11 @@ if args.verbose:
   print('Format graph...')
 G = format_graph(args)
 
-if args.prune:
+if float(args.prune_node) > 0.0 or float(args.prune_edge) > 0.0:
   if args.verbose:
-    print('Prune  graph: {} nodes and {} edges...'.format(
+    print('Prune graph: {} nodes and {} edges...'.format(
         len(G.nodes()), len(G.edges())))
-  G = prune_graph(G)
+  G = prune_graph(G, float(args.prune_node), float(args.prune_edge))
 
 if args.verbose:
   print('Refine graph...')
