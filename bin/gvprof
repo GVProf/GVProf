@@ -17,6 +17,8 @@ Usage:
       control knob values
     -cfg gpu-cfg
       enable fine-grained gpu instruction analysis
+    -s <sampling frequency>
+      set block sampling frequency
     -v verbose
       redirect output to gvprof.log
 EOF
@@ -44,6 +46,10 @@ do
       ;;
     -ck)
       export GVPROF_CONTROL_KNOBS="$GVPROF_CONTROL_KNOBS -ck $1"
+      shift
+      ;;
+    -s)
+      export GVPROF_SAMPLING_FREQUENCY="@$1"
       shift
       ;;
     -h)
@@ -114,7 +120,7 @@ hpcstruct -j $GVPROF_THREADS $GVPROF_EXEC -o $BASENAME".hpcstruct" &>> $GVPROF_R
 
 echo "Second pass: profiling"
 
-hpcrun -e gpu=nvidia,$GVPROF_EVENT -o $MEASUREMENTS $GVPROF_CONTROL_KNOBS $GVPROF_EXEC $GVPROF_ARGS &>> $GVPROF_REDIRECT
+hpcrun -e gpu=nvidia,$GVPROF_EVENT$GVPROF_SAMPLING_FREQUENCY -o $MEASUREMENTS $GVPROF_CONTROL_KNOBS $GVPROF_EXEC $GVPROF_ARGS &>> $GVPROF_REDIRECT
 hpcprof -S $BASENAME".hpcstruct" -o $DATABASE $MEASUREMENTS &>> $GVPROF_REDIRECT
 
 echo "Done..."
