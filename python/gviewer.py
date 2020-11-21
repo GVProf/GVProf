@@ -2,80 +2,147 @@ import argparse
 import sys
 import pygraphviz as pgv
 
+RED_LEVEL_0 = 0.33
+RED_LEVEL_1 = 0.66
+RED_LEVEL_2 = 0.99
+RED_LEVEL_3 = 1.0
 
-def format_context(context, choice, known, leaf):
-  ret = ''
-  if choice == 'none':
-      return ret
-  frames = context.splitlines()
-  for frame in frames[::-1]:
-    line, func = frame.split('\t')
-    if known is True and (line.find('Unknown') == 0 or line.find('<unknown file>') == 0):
-        continue
-    if choice == 'path':
-        func = ''
-    elif choice == 'file':
-        last_slash = line.rfind('/')
-        if last_slash != -1:
-            line = line[last_slash+1:]
-    elif choice == 'func':
-        line = ''
-    ret = line + ' ' + func + '\l' + ret
-    if leaf is True:
-      break
-  # escape characters
-  ret = ret.replace('<', '\<')
-  ret = ret.replace('>', '\>')
-  return ret
+
+class Graph:
+    def __init__(self):
+        self._nodes = dict()
+        self._edges = dict()
+
+    def read_agraph(self, agraph):
+        for node in agraph.nodes():
+            attrs = dict()
+            for key, value in node.attr.items():
+                attrs[key] = value
+            self._nodes[node] = attrs
+
+        for edge in agraph.edges():
+            e = (edge[0], edge[1], edge.attr['edge_type'])
+            attrs = dict()
+            for key, value in edge.attr.items():
+                attrs[key] = value
+            self._edges[e] = attrs
+
+    def new_agraph(self):
+        agraph = pgv.AGraph(strict=False, directed=True)
+        for node, attr in self._nodes.items():
+            agraph.add_node(node, **attr)
+        for edge, attr in self._edges.items():
+            agraph.add_edge(edge[0], edge[1], **attr)
+        return agraph
+
+    def delete_edge(self, src, dst, edge_type):
+        self._edges.pop((src, dst, edge_type), None)
+
+    def delete_node(self, node):
+        self._nodes.pop(node, None)
+        edge_delete = []
+        for edge, _ in self._edges.items():
+            if edge[0] == node or edge[1] == node:
+                edge_delete.append(edge)
+
+        for edge in edge_delete:
+            self._edges.pop(edge, None)
+
+    def nodes(self):
+        return self._nodes
+
+    def edges(self):
+        return self._edges
 
 
 def format_graph(args):
-    file_path = args.file
-    G = pgv.AGraph(file_path, strict=False)
+    def format_context(context, choice, known, leaf):
+        ret = ''
+        if choice == 'none':
+            return ret
+        frames = context.splitlines()
+        for frame in frames[::-1]:
+            line, func = frame.split('\t')
+            if known is True and (line.find('Unknown') == 0 or line.find('<unknown file>') == 0):
+                continue
+            if choice == 'path':
+                func = ''
+            elif choice == 'file':
+                last_slash = line.rfind('/')
+                if last_slash != -1:
+                    line = line[last_slash+1:]
+            elif choice == 'func':
+                line = ''
+            ret = line + ' ' + func + '\l' + ret
+            if leaf is True:
+                break
 
-    for node in G.nodes():
-        for key, value in node.attr.items():
+        # escape characters
+        ret = ret.replace('<', '\<')
+        ret = ret.replace('>', '\>')
+        return ret
+
+    file_path = args.file
+    agraph = pgv.AGraph(file_path, strict=False)
+
+    G = Graph()
+    G.read_agraph(agraph)
+
+    for node, attrs in G.nodes().items():
+        for key, attr in attrs.items():
             if key == 'context':
                 value = format_context(
-                    value, args.context_filter, args.known, args.leaf)
-                node.attr['context'] = value
+                    attr, args.context_filter, args.known, args.leaf)
+                attrs['context'] = value
 
     return G
 
 
 def prune_graph(G, node_threshold=0.0, edge_threshold=0.0):
     # 1. prune no edge nodes
-    nodes_exist = dict()
+    nodes_with_edges = dict()
     for node in G.nodes():
-        nodes_exist[node] = False
+        nodes_with_edges[node] = False
 
     for edge in G.edges():
-        nodes_exist[edge[0]] = True
-        nodes_exist[edge[1]] = True
+        nodes_with_edges[edge[0]] = True
+        nodes_with_edges[edge[1]] = True
 
-    for k, v in nodes_exist.items():
+    for k, v in nodes_with_edges.items():
         if v == False:
+            # XXX(Keren): pay attention to complexity O(NE)
             G.delete_node(k)
 
-    # 2. prune low importance nodes
-    # reserve important edges
-    nodes_reserve = dict()
-    for edge in G.edges():
-        if float(edge.attr['redundancy']) > edge_threshold:
-            nodes_reserve[edge[0]] = True
-            nodes_reserve[edge[1]] = True
+    # 2. prune low importance nodes and edges
+    node_total_count = 0
+    for node, attrs in G.nodes().items():
+        if attrs['count'] is not None:
+            node_total_count += float(attrs['count'])
+    edge_total_count = 0
+    for edge, attrs in G.edges().items():
+        if attrs['count'] is not None:
+            edge_total_count += float(attrs['count'])
 
-    total_count = 0
-    for node in G.nodes():
-        total_count += float(node.attr['count'])
+    delete_edges = []
+    node_reserve = dict()
+    for edge, attrs in G.edges().items():
+        if attrs['count'] is not None:
+            importance = float(attrs['count']) / edge_total_count
+            if float(attrs['redundancy']) >= RED_LEVEL_2 or importance / edge_total_count >= edge_threshold:
+                node_reserve[edge[0]] = True
+                node_reserve[edge[1]] = True
+            else:
+                delete_edges.append(edge)
+    node_importance = dict()
+    for node, attrs in G.nodes().items():
+        if attrs['count'] is not None:
+            node_importance[node] = float(attrs['count']) / node_total_count
 
-    nodes_importance = dict()
-    for node in G.nodes():
-        nodes_importance[node] = float(node.attr['count']) / total_count
-
-    for k, v in nodes_importance.items():
-        if (k not in nodes_reserve) and (v < node_threshold):
-            G.delete_node(k)
+    for edge in delete_edges:
+        G.delete_edge(edge[0], edge[1], edge[2])
+    for node, importance in node_importance.items():
+        if (node not in node_reserve) and (importance < node_threshold):
+            G.delete_node(node)
 
     return G
 
@@ -108,13 +175,13 @@ def create_plain_graph(G):
 def create_pretty_graph(G):
     def color_edge_redundancy(G):
         for edge in G.edges():
-            if float(edge.attr['redundancy']) <= 0.33:
+            if float(edge.attr['redundancy']) <= RED_LEVEL_0:
                 edge.attr['color'] = '#cddc39'
                 edge.attr['fillcolor'] = '#cddc39'
-            elif float(edge.attr['redundancy']) <= 0.66:
+            elif float(edge.attr['redundancy']) <= RED_LEVEL_1:
                 edge.attr['color'] = '#fffa55'
                 edge.attr['fillcolor'] = '#fffa55'
-            elif float(edge.attr['redundancy']) <= 0.99:
+            elif float(edge.attr['redundancy']) <= RED_LEVEL_2:
                 edge.attr['color'] = '#fdcc3a'
                 edge.attr['fillcolor'] = '#fdcc3a'
             else:
@@ -244,8 +311,10 @@ parser.add_argument('-l', '--leaf', action='store_true', default=False,
                     help='show only leaf function')
 parser.add_argument('-of', '--output-format',
                     choices=['svg', 'png', 'pdf'], default='svg', help='output format')
-parser.add_argument('-pn', '--prune-node', default=0.0, help='prune node lower bound')
-parser.add_argument('-pe', '--prune-edge', default=0.0, help='prune edge lower bound')
+parser.add_argument('-pn', '--prune-node', default=0.0,
+                    help='prune node lower bound')
+parser.add_argument('-pe', '--prune-edge', default=0.0,
+                    help='prune edge lower bound')
 parser.add_argument(
     '-ly', '--layout', choices=['dot', 'neato', 'circo'], default='dot', help='svg layout')
 parser.add_argument('-pr', '--pretty', action='store_true', default=False,
@@ -266,16 +335,16 @@ if float(args.prune_node) > 0.0 or float(args.prune_edge) > 0.0:
 if args.verbose:
   print('Refine graph...')
 if args.pretty:
-    G = create_pretty_graph(G)
+    agraph = create_pretty_graph(G.new_agraph())
 else:
-    G = create_plain_graph(G)
+    agraph = create_plain_graph(G.new_agraph())
 
 if args.verbose:
   print('Organize graph: {} nodes and {} edges...'.format(
-      len(G.nodes()), len(G.edges())))
-G.layout(prog=args.layout)
+      len(agraph.nodes()), len(agraph.edges())))
+agraph.layout(prog=args.layout)
 
 if args.verbose:
   print('Output graph...')
 #G.write(args.file + '.dot')
-G.draw(args.file + '.' + args.output_format)
+agraph.draw(args.file + '.' + args.output_format)
