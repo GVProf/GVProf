@@ -108,7 +108,7 @@ echo "First pass: dump and analyze CPU and GPU binaries"
 hpcrun -e gpu=nvidia -o $MEASUREMENTS $GVPROF_EXEC $GVPROF_ARGS &> $GVPROF_REDIRECT
 rm -rf $MEASUREMENTS/*.hpcrun
 
-if [ ! -z "$GVPROF_CFG"]
+if [ ! -z "$GVPROF_CFG" ]
 then
 hpcstruct --gpucfg yes -j $GVPROF_THREADS $MEASUREMENTS &>> $GVPROF_REDIRECT
 else
