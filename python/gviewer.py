@@ -6,6 +6,8 @@ RED_LEVEL_0 = 0.33
 RED_LEVEL_1 = 0.66
 RED_LEVEL_2 = 0.99
 RED_LEVEL_3 = 1.0
+MAX_NODE_WIDTH = 3.0
+MAX_EDGE_WIDTH = 5.0
 
 
 class Graph:
@@ -128,20 +130,22 @@ def prune_graph(G, node_threshold=0.0, edge_threshold=0.0):
     for edge, attrs in G.edges().items():
         if attrs['count'] is not None:
             importance = float(attrs['count']) / edge_total_count
-            if float(attrs['redundancy']) >= RED_LEVEL_2 or importance / edge_total_count >= edge_threshold:
+            if float(attrs['redundancy']) >= RED_LEVEL_2 or importance >= edge_threshold:
                 node_reserve[edge[0]] = True
                 node_reserve[edge[1]] = True
             else:
                 delete_edges.append(edge)
-    node_importance = dict()
+    delete_nodes = []
     for node, attrs in G.nodes().items():
         if attrs['count'] is not None:
-            node_importance[node] = float(attrs['count']) / node_total_count
+            importance = float(attrs['count']) / node_total_count
+            if importance < node_threshold:
+                delete_nodes.append(node)
 
     for edge in delete_edges:
         G.delete_edge(edge[0], edge[1], edge[2])
-    for node, importance in node_importance.items():
-        if (node not in node_reserve) and (importance < node_threshold):
+    for node in delete_nodes:
+        if node not in node_reserve:
             G.delete_node(node)
 
     return G
@@ -193,13 +197,12 @@ def create_pretty_graph(G):
         edges = G.edges()
         max_edge = max(edges, key=lambda edge: float(
             edge.attr['overwrite']) * float(edge.attr['count']))
-        max_width = 6.0
         max_weight = float(max_edge.attr['overwrite']) * \
             float(max_edge.attr['count'])
 
         for edge in edges:
             width = float(edge.attr['overwrite']) * \
-                float(edge.attr['count']) / max_weight * max_width
+                float(edge.attr['count']) / max_weight * MAX_EDGE_WIDTH
             if width < 1.0:
                 edge.attr['penwidth'] = 1.0
             else:
@@ -210,11 +213,10 @@ def create_pretty_graph(G):
     def apportion_node_width(G):
         nodes = G.nodes()
         max_node = max(nodes, key=lambda node: float(node.attr['count']))
-        max_width = 1.2
         max_weight = float(max_node.attr['count'])
 
         for node in nodes:
-            width = float(node.attr['count']) / max_weight * max_width
+            width = float(node.attr['count']) / max_weight * MAX_NODE_WIDTH
             if width < 1.0:
                 node.attr['width'] = 0.6
             else:
