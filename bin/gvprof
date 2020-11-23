@@ -41,8 +41,7 @@ do
       shift
       ;;
     -cfg)
-      export GVPROF_CFG=$1
-      shift
+      export GVPROF_CFG=1
       ;;
     -ck)
       export GVPROF_CONTROL_KNOBS="$GVPROF_CONTROL_KNOBS -ck $1"
