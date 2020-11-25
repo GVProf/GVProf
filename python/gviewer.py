@@ -115,7 +115,16 @@ def prune_graph(G, node_threshold=0.0, edge_threshold=0.0):
             # XXX(Keren): pay attention to complexity O(NE)
             G.delete_node(k)
 
-    # 2. prune low importance nodes and edges
+    # 2. prune no context nodes
+    nodes_without_context = dict()
+    for node, attrs in G.nodes().items():
+        if 'context' not in attrs or attrs['context'] == '':
+            nodes_without_context[node] = True
+
+    for node in nodes_without_context:
+        G.delete_node(node)
+
+    # 3. prune low importance nodes and edges
     node_total_count = 0
     for node, attrs in G.nodes().items():
         if attrs['count'] is not None:
@@ -265,9 +274,9 @@ def create_pretty_graph(G):
     for edge in G.edges():
         if (edge[0], edge[1], edge.attr['memory_node_id']) in rw_edges:
             rw_edge = rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])]
-            redundancy = float(rw_edge[1]) + float(edge.attr['redundancy'])
-            overwrite = float(rw_edge[2]) + float(edge.attr['overwrite'])
-            count = int(rw_edge[3]) + int(edge.attr['count'])
+            redundancy = max(float(rw_edge[1]), float(edge.attr['redundancy']))
+            overwrite = max(float(rw_edge[2]), float(edge.attr['overwrite']))
+            count = max(int(rw_edge[3]), int(edge.attr['count']))
             rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])] = (
                 True, str(redundancy), str(overwrite), str(count))
         else:
@@ -285,6 +294,9 @@ def create_pretty_graph(G):
             tooltip += 'REDUNDANCY: ' + str(rw_edge[1]) + '\l'
             tooltip += 'OVERWRITE: ' + str(rw_edge[2]) + '\l'
             tooltip += 'BYTES: ' + str(rw_edge[3]) + '\l'
+            edge.attr['redundancy'] = rw_edge[1]
+            edge.attr['overwrite'] = rw_edge[2]
+            edge.attr['count'] = rw_edge[3]
         else:
             tooltip += 'TYPE: ' + edge.attr['edge_type'] + '\l'
             tooltip += 'REDUNDANCY: ' + str(edge.attr['redundancy']) + '\l'
