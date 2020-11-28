@@ -23,7 +23,8 @@ class Graph:
             self._nodes[node] = attrs
 
         for edge in agraph.edges():
-            e = (edge[0], edge[1], edge.attr['edge_type'])
+            e = (edge[0], edge[1], edge.attr['memory_node_id'],
+                 edge.attr['edge_type'])
             attrs = dict()
             for key, value in edge.attr.items():
                 attrs[key] = value
@@ -31,14 +32,17 @@ class Graph:
 
     def new_agraph(self):
         agraph = pgv.AGraph(strict=False, directed=True)
-        for node, attr in self._nodes.items():
-            agraph.add_node(node, **attr)
-        for edge, attr in self._edges.items():
-            agraph.add_edge(edge[0], edge[1], **attr)
+        for node, attrs in self._nodes.items():
+            agraph.add_node(node, **attrs)
+        for edge, attrs in self._edges.items():
+            agraph.add_edge(edge[0], edge[1], **attrs)
         return agraph
 
-    def delete_edge(self, src, dst, edge_type):
-        self._edges.pop((src, dst, edge_type), None)
+    def add_edge(self, src, dst, meomry_node_id, edge_type, attrs):
+        self._edges[(src, dst, meomry_node_id, edge_type)] = attrs
+
+    def delete_edge(self, src, dst, meomry_node_id, edge_type):
+        self._edges.pop((src, dst, meomry_node_id, edge_type), None)
 
     def delete_node(self, node):
         self._nodes.pop(node, None)
@@ -152,10 +156,37 @@ def prune_graph(G, node_threshold=0.0, edge_threshold=0.0):
                 delete_nodes.append(node)
 
     for edge in delete_edges:
-        G.delete_edge(edge[0], edge[1], edge[2])
+        G.delete_edge(edge[0], edge[1], edge[2], edge[3])
     for node in delete_nodes:
         if node not in node_reserve:
             G.delete_node(node)
+
+    return G
+
+
+def combine_graph(G):
+    # Combine read write edges
+    rw_edges = dict()
+    for edge, attrs in G.edges().items():
+        edge_key = (edge[0], edge[1], edge[2])
+        if edge_key in rw_edges:
+            rw_edge = rw_edges[edge_key][1]
+            rw_edge['redundancy'] = max(
+                float(rw_edge['redundancy']), float(attrs['redundancy']))
+            rw_edge['overwrite'] = max(
+                float(rw_edge['overwrite']), float(attrs['overwrite']))
+            rw_edge['count'] = max(int(rw_edge['count']), int(attrs['count']))
+            rw_edges[edge_key] = (True, rw_edge)
+        else:
+            rw_edges[edge_key] = (False, attrs)
+
+    for edge_key, attrs in rw_edges.items():
+        if attrs[0]:
+            G.delete_edge(edge_key[0], edge_key[1], edge_key[2], 'READ')
+            G.delete_edge(edge_key[0], edge_key[1], edge_key[2], 'WRITE')
+            attrs[1]['edge_type'] = 'READ & WRITE'
+            G.add_edge(edge_key[0], edge_key[1],
+                       edge_key[2], 'READ & WRITE', attrs[1])
 
     return G
 
@@ -269,39 +300,12 @@ def create_pretty_graph(G):
         tooltip.replace('\l', '&#10;')
         node.attr['tooltip'] = tooltip
 
-    # Combine read write edges
-    rw_edges = dict()
-    for edge in G.edges():
-        if (edge[0], edge[1], edge.attr['memory_node_id']) in rw_edges:
-            rw_edge = rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])]
-            redundancy = max(float(rw_edge[1]), float(edge.attr['redundancy']))
-            overwrite = max(float(rw_edge[2]), float(edge.attr['overwrite']))
-            count = max(int(rw_edge[3]), int(edge.attr['count']))
-            rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])] = (
-                True, str(redundancy), str(overwrite), str(count))
-        else:
-            rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])] = (
-                False, edge.attr['redundancy'], edge.attr['overwrite'], edge.attr['count'])
-    for edge, rw in rw_edges.items():
-        if rw[0]:
-            G.delete_edge(edge[0], edge[1])
-
     for edge in G.edges():
         tooltip = 'MEMORY_NODE_ID: ' + edge.attr['memory_node_id'] + '\l'
-        if rw_edges[edge[0], edge[1], edge.attr['memory_node_id']][0]:
-            rw_edge = rw_edges[(edge[0], edge[1], edge.attr['memory_node_id'])]
-            tooltip += 'TYPE: READ \& WRITE' + '\l'
-            tooltip += 'REDUNDANCY: ' + str(rw_edge[1]) + '\l'
-            tooltip += 'OVERWRITE: ' + str(rw_edge[2]) + '\l'
-            tooltip += 'BYTES: ' + str(rw_edge[3]) + '\l'
-            edge.attr['redundancy'] = rw_edge[1]
-            edge.attr['overwrite'] = rw_edge[2]
-            edge.attr['count'] = rw_edge[3]
-        else:
-            tooltip += 'TYPE: ' + edge.attr['edge_type'] + '\l'
-            tooltip += 'REDUNDANCY: ' + str(edge.attr['redundancy']) + '\l'
-            tooltip += 'OVERWRITE: ' + str(edge.attr['overwrite']) + '\l'
-            tooltip += 'BYTES: ' + str(edge.attr['count']) + '\l'
+        tooltip += 'TYPE: ' + edge.attr['edge_type'] + '\l'
+        tooltip += 'REDUNDANCY: ' + str(edge.attr['redundancy']) + '\l'
+        tooltip += 'OVERWRITE: ' + str(edge.attr['overwrite']) + '\l'
+        tooltip += 'BYTES: ' + str(edge.attr['count']) + '\l'
         tooltip.replace('\l', '&#10;')
         edge.attr['tooltip'] = tooltip
         edge.attr['fontname'] = 'helvetica Neue Ultra Light'
@@ -349,6 +353,7 @@ if float(args.prune_node) > 0.0 or float(args.prune_edge) > 0.0:
 if args.verbose:
   print('Refine graph...')
 if args.pretty:
+    G = combine_graph(G)
     agraph = create_pretty_graph(G.new_agraph())
 else:
     agraph = create_plain_graph(G.new_agraph())
