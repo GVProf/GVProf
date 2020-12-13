@@ -5,7 +5,7 @@ DIR=""
 CUDA_PATH=""
 
 if [ $# -eq 0 ]; then
-  DIR=$(`pwd`)/gvprof
+  DIR=`pwd`/gvprof
 else
   if [ $# -eq 1 ]; then
     DIR=$1
