@@ -5,7 +5,7 @@ DIR=""
 CUDA_PATH=""
 
 if [ $# -eq 0 ]; then
-  DIR=$(`pwd`)/gvprof
+  DIR=`pwd`/gvprof
 else
   if [ $# -eq 1 ]; then
     DIR=$1
@@ -70,8 +70,8 @@ cd $SOURCE_DIR
 mkdir $DIR/bin
 mkdir $DIR/python
 cp ./bin/gvprof $DIR/bin/
-cp -r ./python $DIR/python
-echo "python $DIR/python/gviewer.py $@" > $DIR/bin/gviewer
+cp -r ./python $DIR
+echo "python $DIR/python/gviewer.py "'${@:1}' > $DIR/bin/gviewer
 chmod +x $DIR/bin/gviewer
 
 echo "Install in "$DIR"/bin/gvprof"
