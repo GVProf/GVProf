@@ -2,26 +2,33 @@
 
 SOURCE_DIR=`pwd`
 DIR=""
-CUDA_PATH=""
+CUDA_PATH=/usr/local/cuda/
+SANITIZER_PATH=$CUDA_PATH/compute-sanitizer
 
 if [ $# -eq 0 ]; then
   DIR=`pwd`/gvprof
 else
   if [ $# -eq 1 ]; then
     DIR=$1
-    CUDA_PATH=/usr/local/cuda/
   else
     if [ $# -eq 2 ]; then
       DIR=$1
       CUDA_PATH=$2
-    fi  
+    else
+      if [ $# -eq 3 ]; then
+        DIR=$1
+        CUDA_PATH=$2
+        SANITIZER_PATH=$3
+      fi
+    fi
   fi  
 fi
 
 
 if [ -z "$DIR" ]
 then
-  echo "Wrong prefix"
+  echo "Wrong paths"
+  echo "./install <prefix> <cuda-path> <sanitizer-path>"
   exit
 fi
 
@@ -45,7 +52,7 @@ spack install --only dependencies hpctoolkit ^dyninst@master
 
 # Install gpu-patch
 cd $SOURCE_DIR
-make PREFIX=$DIR/gpu-patch CUDA_PATH=$CUDA_PATH install
+make PREFIX=$DIR/gpu-patch SANITIZER_PATH=$SANITIZER_PATH CUDA_PATH=$CUDA_PATH install
 
 # Find spack and boost dir
 B=`spack find --path boost | tail -n 1 | cut -d ' ' -f 3`
@@ -62,9 +69,9 @@ cd hpctoolkit
 mkdir build
 cd build
 ../configure --prefix=$DIR/hpctoolkit --with-cuda=$CUDA_PATH \
---with-sanitizer=$CUDA_PATH/Sanitizer --with-gpu-patch=$DIR/gpu-patch \
+--with-sanitizer=$SANITIZER_PATH --with-gpu-patch=$DIR/gpu-patch \
 --with-redshow=$DIR/redshow --with-spack=$S
-make install -j8
+make install -j16
 
 cd $SOURCE_DIR
 mkdir $DIR/bin
