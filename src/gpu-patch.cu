@@ -7,14 +7,13 @@
 
 #include <sanitizer_patching.h>
 
-
 /*
  * Monitor each shared and global memory access.
  */
-extern "C"
-__device__ __noinline__
+static 
+__device__ __forceinline__
 SanitizerPatchResult
-sanitizer_memory_access_callback
+memory_access_callback
 (
  void *user_data,
  uint64_t pc,
@@ -39,9 +38,9 @@ sanitizer_memory_access_callback
   uint8_t buf[GPU_PATCH_MAX_ACCESS_SIZE];
   if (new_value == NULL) {
     // Read operation, old value can be on local memory, shared memory, or global memory
-    if (flags & SANITIZER_MEMORY_DEVICE_FLAG_SHARED) {
+    if (flags & GPU_PATCH_SHARED) {
       read_shared_memory(size, (uint32_t)address, buf);
-    } else if (flags & SANITIZER_MEMORY_DEVICE_FLAG_LOCAL) {
+    } else if (flags & GPU_PATCH_LOCAL) {
       read_local_memory(size, (uint32_t)address, buf);
     } else if (flags != SANITIZER_MEMORY_DEVICE_FLAG_FORCE_INT) {
       read_global_memory(size, (uint64_t)address, buf);
@@ -85,6 +84,57 @@ sanitizer_memory_access_callback
   }
 
   return SANITIZER_PATCH_SUCCESS;
+}
+
+
+extern "C"
+__device__ __noinline__
+SanitizerPatchResult
+sanitizer_global_memory_access_callback
+(
+ void *user_data,
+ uint64_t pc,
+ void *address,
+ uint32_t size,
+ uint32_t flags,
+ const void *new_value
+) 
+{
+  return memory_access_callback(user_data, pc, address, size, flags, new_value);
+}
+
+
+extern "C"
+__device__ __noinline__
+SanitizerPatchResult
+sanitizer_shared_memory_access_callback
+(
+ void *user_data,
+ uint64_t pc,
+ void *address,
+ uint32_t size,
+ uint32_t flags,
+ const void *new_value
+) 
+{
+  return memory_access_callback(user_data, pc, address, size, flags | GPU_PATCH_SHARED, new_value);
+}
+
+
+extern "C"
+__device__ __noinline__
+SanitizerPatchResult
+sanitizer_local_memory_access_callback
+(
+ void *user_data,
+ uint64_t pc,
+ void *address,
+ uint32_t size,
+ uint32_t flags,
+ const void *new_value
+) 
+{
+  return memory_access_callback(user_data, pc, address, size, flags | GPU_PATCH_LOCAL, new_value);
 }
 
 
