@@ -5,7 +5,8 @@ import sys
 
 import pygraphviz as pgv
 
-TestCase = namedtuple('TestCase', ['path', 'command', 'options', 'files', 'nodes', 'edges'])
+TestCase = namedtuple(
+    'TestCase', ['path', 'command', 'options', 'files', 'nodes', 'edges'])
 
 
 def setup():

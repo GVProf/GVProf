@@ -71,12 +71,11 @@ def setup():
                                command='./bfs',
                                options=['../data/graph1MW_6.txt'],
                                files=['value_pattern_t0.csv'],
-                               op_counts=[[[5999970, 5999970, 1000000, 5999970],
+                               op_counts=[[[5861406, 2000000, 1000014, 5861406],
+                                           [5999970, 5999970, 1000000, 5999970],
                                            [12000000, 0, 0, 0],
                                            [5999970, 32710, 2, 119381],
                                            [1930703, 633664, 11, 1930703],
-                                           [5861406, 2000000,
-                                            1000014, 5861406],
                                            [1000000, 1000000, 1, 1000000],
                                            [0, 0, 0, 0],
                                            [1000000, 1000000, 1, 1000000],
@@ -87,14 +86,14 @@ def setup():
                                            [999999, 999999, 1, 999999],
                                            [0, 0, 0, 0],
                                            [999999, 999999, 1, 999999],
-                                           [999999, 1, 1, 999999],
-                                           [999999, 999999, 1, 999999]]],
+                                           [999999, 999999, 1, 999999],
+                                           [999999, 1, 1, 999999]]],
                                kernel_patterns=[['No Pattern', 'No Pattern', 'No Pattern',
-                                                 'Dense Value', 'No Pattern', 'Inappropriate', 'Dense Value',
+                                                 'No Pattern', 'Dense Value', 'Inappropriate', 'Dense Value',
                                                  'Redundant Zeros', 'Single Value', 'Dense Value'],
                                                 ['No Pattern', 'Single Value', 'Inappropriate', 'Dense Value',
                                                  'Redundant Zeros', 'Single Value', 'Single Value']]
-                                                ))
+                               ))
 
     return test_cases
 
@@ -130,7 +129,7 @@ def test(test_cases, bench):
                              test_case.kernel_patterns, buf)
             if res is False:
                 os.chdir('../..')
-                sys.exit('Error ' + msg)
+                sys.exit('Error ' + test_case.path + ' ' + msg)
             else:
                 print('Pass ' + test_case.path + ' ' + f)
 
