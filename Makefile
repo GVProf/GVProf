@@ -3,7 +3,7 @@ PROJECT ?= gpu-patch.fatbin
 
 # Location of the CUDA Toolkit
 CUDA_PATH ?= /usr/local/cuda
-SANITIZER_PATH ?= $(CUDA_PATH)/Sanitizer
+SANITIZER_PATH ?= $(CUDA_PATH)/compute-sanitizer
 CUPTI_PATH ?= $(CUDA_PATH)
 
 NVCC := $(CUDA_PATH)/bin/nvcc
