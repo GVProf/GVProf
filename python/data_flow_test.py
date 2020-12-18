@@ -23,6 +23,7 @@ def setup():
     test_cases.append(TestCase(path='samples/bfs',
                                command='./bfs',
                                options=['../data/graph1MW_6.txt'],
+                               files=['data_flow.dot'],
                                nodes=[23],
                                edges=[41]))
 
@@ -50,16 +51,20 @@ def test(test_cases, bench):
         os.chdir(test_case.path)
         cleanup()
 
+        pipe_read(['gvprof', '-cfg', '-e', 'data_flow',
+                   test_case.command] + test_case.options)
+
         # Just count the number of nodes and edges,
         # redundancy and overwrite is difficult for autotest
-        for f in test_case.files:
+        for i, f in enumerate(test_case.files):
+            f = 'gvprof-measurements/data_flow/' + f
             agraph = pgv.AGraph(f, strict=False)
-            if len(agraph.nodes()) != test_case.nodes:
-                sys.exit('Error {} nodes (true: {} vs test: {})').format(
-                    test_case.path, test_case.nodes, len(agraph.nodes()))
-            if len(agraph.edges()) != test_case.nodes:
-                sys.exit('Error {} edges (true: {} vs test: {})').format(
-                    test_case.path, test_case.edges, len(agraph.edges()))
+            if len(agraph.nodes()) != test_case.nodes[i]:
+                sys.exit('Error {} nodes (true: {} vs test: {})'.format(
+                    test_case.path, test_case.nodes[i], len(agraph.nodes())))
+            if len(agraph.edges()) != test_case.edges[i]:
+                sys.exit('Error {} edges (true: {} vs test: {})'.format(
+                    test_case.path, test_case.edges[i], len(agraph.edges())))
             print('Pass ' + test_case.path)
 
         os.chdir('../..')

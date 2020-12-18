@@ -92,8 +92,6 @@ def pipe_read(command):
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
-    print(stdout)
-    print(stderr)
     return stdout
 
 
