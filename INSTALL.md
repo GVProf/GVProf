@@ -13,7 +13,7 @@ If you install cuda toolkit in somewhere else, you need to change the value of `
 ```bash
 git clone --recursive git@github.com:Jokeren/GVProf.git
 cd GVProf
-make PREFIX=/path/to/gpu-patch/installation SANITIZER_PATH=/usr/local/cuda/Sanitizer/ install
+make PREFIX=/path/to/gpu-patch/installation SANITIZER_PATH=/usr/local/cuda/compute-sanitizer/ install
 ```
 
 ## Install dependencies
