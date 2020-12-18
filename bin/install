@@ -14,6 +14,7 @@ else
     if [ $# -eq 2 ]; then
       DIR=$1
       CUDA_PATH=$2
+      SANITIZER_PATH=$2/compute-sanitizer
     else
       if [ $# -eq 3 ]; then
         DIR=$1
@@ -34,6 +35,7 @@ fi
 
 echo $DIR
 echo $CUDA_PATH
+echo $SANITIZER_PATH
 
 if [ ! -d $DIR ]
 then
