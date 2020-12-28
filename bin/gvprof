@@ -115,7 +115,7 @@ hpcstruct -j $GVPROF_THREADS $MEASUREMENTS &>> $GVPROF_REDIRECT
 fi
 
 BASENAME=./$(basename $GVPROF_EXEC)
-hpcstruct -j $GVPROF_THREADS $GVPROF_EXEC -o $BASENAME".hpcstruct" &>> $GVPROF_REDIRECT
+hpcstruct $GVPROF_EXEC -o $BASENAME".hpcstruct" &>> $GVPROF_REDIRECT
 
 echo "Second pass: profiling"
 
