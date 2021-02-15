@@ -1,5 +1,6 @@
 # Modified from https://github.com/Jokeren/compute-sanitizer-samples/tree/master/MemoryTracker
 PROJECT ?= gpu-patch.fatbin
+PROJECT_ANALYSIS ?= gpu-analysis.fatbin
 
 # Location of the CUDA Toolkit
 CUDA_PATH ?= /usr/local/cuda
@@ -21,23 +22,26 @@ $(foreach sm,$(ARCHS),$(eval GENCODE_FLAGS += -gencode arch=compute_$(sm),code=s
 HIGHEST_SM := $(lastword $(sort $(ARCHS)))
 GENCODE_FLAGS += -gencode arch=compute_$(HIGHEST_SM),code=compute_$(HIGHEST_SM)
 
-all: $(PROJECT)
+all: $(PROJECT) $(PROJECT_ANALYSIS)
 
 ifdef PREFIX
 install: all
 endif
 
 $(PROJECT): %.fatbin : $(SRC_DIR)/%.cu
+	$(NVCC) $(CXXFLAGS) $(GENCODE_FLAGS) -Xptxas --compile-as-tools-patch -o $@ -c $<
+
+$(PROJECT_ANALYSIS): %.fatbin : $(SRC_DIR)/%.cu
 	$(NVCC) $(CXXFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 ifdef PREFIX
-install: $(PROJECT)
+install: $(PROJECT) $(PROJECT_ANALYSIS)
 	mkdir -p $(PREFIX)/lib
 	mkdir -p $(PREFIX)/include
 	mkdir -p $(PREFIX)/bin
-	cp -rf $(PROJECT) $(PREFIX)/lib
+	cp -rf $(PROJECT) $(PROJECT_ANALYSIS) $(PREFIX)/lib
 	cp -rf include $(PREFIX)
 endif
 
 clean:
-	rm -f $(PROJECT)
+	rm -f $(PROJECT) $(PROJECT_ANALYSIS)
