@@ -1,5 +1,5 @@
 # Modified from https://github.com/Jokeren/compute-sanitizer-samples/tree/master/MemoryTracker
-PROJECT ?= gpu-patch.fatbin
+PROJECT ?= gpu-patch.fatbin gpu-patch-address.fatbin
 PROJECT_ANALYSIS ?= gpu-analysis.fatbin
 
 # Location of the CUDA Toolkit
@@ -11,7 +11,7 @@ NVCC := $(CUDA_PATH)/bin/nvcc
 
 INCLUDE_DIRS := -I$(CUDA_PATH)/include -I$(SANITIZER_PATH)/include -I$(CUPTI_PATH)/include -Iinclude
 SRC_DIR := src
-CXXFLAGS := $(INCLUDE_DIRS) -O2 --fatbin --keep-device-functions -Xptxas --compile-as-tools-patch
+CXXFLAGS := $(INCLUDE_DIRS) -O3 --fatbin --keep-device-functions
 
 ARCHS := 50 60 70 75 80
 

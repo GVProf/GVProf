@@ -10,10 +10,11 @@
  */
 extern "C"
 __device__
-gpu_patch_record_t *
+uint32_t
 gpu_queue_get
 (
- gpu_patch_buffer_t *buffer
+ gpu_patch_buffer_t *buffer,
+ uint32_t analysis = 0
 ) 
 {
   uint32_t size = buffer->size;
@@ -26,11 +27,19 @@ gpu_queue_get
       if (tail_index - 1 == size) {
         // Wait for previous warps finish writing
         while (buffer->head_index < size);
-        // Sync with CPU
-        __threadfence_system();
-        buffer->full = 1;
-        __threadfence_system();
-        while (buffer->full);
+        if (analysis == 1) {
+          // Sync with GPU
+          __threadfence_system();
+          buffer->analysis = 1;
+          __threadfence_system();
+          while (buffer->analysis == 1);
+        } else {
+          // Sync with CPU
+          __threadfence_system();
+          buffer->full = 1;
+          __threadfence_system();
+          while (buffer->full == 1);
+        }
         __threadfence();
         buffer->head_index = 0;
         __threadfence();
@@ -43,8 +52,7 @@ gpu_queue_get
     }
   }
   
-  gpu_patch_record_t *records = (gpu_patch_record_t *)buffer->records;
-  return records + tail_index - 1;
+  return tail_index - 1;
 }
 
 
