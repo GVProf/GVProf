@@ -29,9 +29,9 @@ gpu_queue_get
         while (buffer->head_index < size);
         if (analysis == 1) {
           // Sync with GPU
-          __threadfence_system();
+          __threadfence();
           buffer->analysis = 1;
-          __threadfence_system();
+          __threadfence();
           while (buffer->analysis == 1);
         } else {
           // Sync with CPU

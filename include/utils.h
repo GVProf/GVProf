@@ -125,6 +125,18 @@ __device__ __forceinline__ uint32_t bfe(uint32_t source, uint32_t bit_index) {
   return bit;
 }
 
+__device__ __forceinline__ uint32_t brev(uint32_t source) {
+  uint32_t dest;
+  asm volatile("brev.b32 %0, %1;" : "=r"(dest) : "r"(source));
+  return dest;
+}
+
+__device__ __forceinline__ uint32_t bfind(uint32_t source) {
+	uint32_t bit_index;
+	asm volatile("bfind.u32 %0, %1;" : "=r"(bit_index) : "r"((uint32_t) source));
+	return bit_index;
+}
+
 __device__ __forceinline__ uint32_t fns(uint32_t source, uint32_t base_index) {
   uint32_t bit_index;
   asm volatile("fns.b32 %0, %1, %2, %3;" : "=r"(bit_index) : "r"(source), "r"(base_index), "r"(1));
@@ -159,6 +171,25 @@ __device__ __forceinline__ T warp_sort(T x) {
   x = comparator(x, 1, bfe(laneid, 0));                   // O, sorted sequences of length 32
 
   return x;
+}
+
+
+template<typename T>
+__device__ T atomicLoad(const T *addr) {
+  const volatile T *vaddr = addr; // volatile to bypass cache
+  __threadfence(); // for seq_cst loads. Remove for acquire semantics.
+  const T value = *vaddr;
+  // fence to ensure that dependent reads are correctly ordered
+  __threadfence(); 
+  return value; 
+}
+
+template<typename T>
+__device__ void atomicStore(T *addr, T value) {
+  volatile T *vaddr = addr; // volatile to bypass cache
+  // fence to ensure that previous non-atomic stores are visible to other threads
+  __threadfence(); 
+  *vaddr = value;
 }
 
 #endif

@@ -26,8 +26,8 @@ interval_compact
 
   for (auto iter = warp_index; iter < patch_buffer->head_index; iter += num_warps) {
     gpu_patch_record_address_t *record = records + iter;
-    uint64_t address_start = record->address[threadIdx.x];
-    if ((laneid & record->active) == 0) {
+    uint64_t address_start = record->address[laneid];
+    if (((0x1u << laneid) & record->active) == 0) {
       // Those address_start does not matter
       address_start = 0;
     }
@@ -35,33 +35,57 @@ interval_compact
     address_start = warp_sort(address_start);
     uint32_t first_laneid = __ffs(record->active) - 1;
     uint32_t interval_start = shfl_up(record->active, address_start, 1);
-    if (address_start != 0 && (interval_start + record->size != address_start || laneid == first_laneid)) {
+    if (address_start != 0 && (interval_start + record->size != address_start)) {
       interval_start = 1;
     } else {
       interval_start = 0;
     }
 
-    // find the end position
+    // In the worst case, a for loop takes 31 * 3 steps (shift + compare + loop) to find 
+    // the right end. The following procedure find the end with ~10 instructions.
+    // Find the end position
+    // 00100010b
+    // 76543210
+    //       x
+    // laneid = 1
     uint32_t b = ballot(record->active, interval_start);
-    uint32_t p = fns(b, laneid + 1);
-    if (p == 0xFFFFFFFF) {
-      p = GPU_PATCH_WARP_SIZE - 1;
+    // 01000100b
+    // 76543210
+    //  x
+    // laneid_rev = 8 - 1 - 1 = 6
+    uint32_t b_rev = brev(b);
+    uint32_t laneid_rev = GPU_PATCH_WARP_SIZE - laneid - 1; 
+    uint32_t laneid_rev_mask = (1 << laneid_rev) - 1;
+    // 00000100b
+    // 76543210
+    //      x
+    // p_rev = 2
+    // p = 8 - 2 - 1 = 5
+    uint32_t p = bfind(laneid_rev_mask & b_rev);
+    if (p != 0xFFFFFFFF) {
+      // Get the end of the interval
+      p = GPU_PATCH_WARP_SIZE - p - 1;
+    } else {
+      // Get myself
+      p = laneid;
     }
-    uint64_t address_end = shfl(address_start + record->size, p);
+    uint64_t address_end = address_start + record->size;
+    address_end = shfl(address_end, p - 1);
 
     if (interval_start == 1) {
       gpu_patch_analysis_address_t *address_record = NULL;
 
       if (record->flags & GPU_PATCH_READ) {
         address_record = read_records + gpu_queue_get(read_buffer); 
-      } else {
-        address_record = write_records + gpu_queue_get(write_buffer); 
-      } 
-      address_record->start = address_start;
-      address_record->end = address_end;
-      if (record->flags & GPU_PATCH_READ) {
+        address_record->start = address_start;
+        address_record->end = address_end;
         gpu_queue_push(read_buffer);
-      } else {
+      } 
+      
+      if (record->flags & GPU_PATCH_WRITE) {
+        address_record = write_records + gpu_queue_get(write_buffer); 
+        address_record->start = address_start;
+        address_record->end = address_end;
         gpu_queue_push(write_buffer);
       } 
     }
@@ -174,16 +198,22 @@ gpu_analysis_interval_merge
  gpu_patch_buffer_t *write_buffer
 )
 {
-  // Continue processing until analysis is 0
-  while (read_buffer->analysis == 1) {
-    while (buffer->analysis == 0 && read_buffer->analysis == 1);
-    // Compact address
+  // Continue processing until CPU notifies analysis is done
+  while (read_buffer->analysis == 1 || write_buffer->analysis == 1) {
+		// Wait until GPU notifies buffer is full. i.e., analysis can begin process.
+    // Block sampling is not allowed
+    while (buffer->analysis == 0 && atomicLoad(&buffer->num_threads) != 0); 
+
+    // Compact addresses from contiguous thread accesses within each warp
     interval_compact(buffer, read_buffer, write_buffer);
 
+		// TODO(Keren): ensure compact is done by all blocks
     // Compact is done
     __syncthreads();
     __threadfence_system();
-    buffer->analysis = 0;
+		if (threadIdx.x == 0 && blockIdx.x == 0) {
+			buffer->analysis = 0;
+		}
     __threadfence_system();
     __syncthreads();
 
