@@ -54,7 +54,7 @@ memory_access_callback
   if (laneid == first_laneid) {
     // 3. Get a record
     gpu_patch_record_t *records = (gpu_patch_record_t *)buffer->records;
-    record = records + gpu_queue_get(buffer, buffer->flags & GPU_PATCH_ANALYSIS); 
+    record = records + gpu_queue_get(buffer, (buffer->flags & GPU_PATCH_ANALYSIS) != 0); 
 
     // 4. Assign basic values
     record->flags = flags;
@@ -164,7 +164,7 @@ sanitizer_block_exit_callback
 
   if (laneid == first_laneid) {
     gpu_patch_record_t *records = (gpu_patch_record_t *)buffer->records;
-    gpu_patch_record_t *record = records + gpu_queue_get(buffer, buffer->flags & GPU_PATCH_ANALYSIS); 
+    gpu_patch_record_t *record = records + gpu_queue_get(buffer, (buffer->flags & GPU_PATCH_ANALYSIS) != 0); 
 
     record->pc = pc;
     record->flags = GPU_PATCH_BLOCK_EXIT_FLAG;
@@ -207,7 +207,7 @@ sanitizer_block_enter_callback
   if (laneid == first_laneid) {
     // Mark block begin
     gpu_patch_record_t *records = (gpu_patch_record_t *)buffer->records;
-    gpu_patch_record_t *record = records + gpu_queue_get(buffer, buffer->flags & GPU_PATCH_ANALYSIS); 
+    gpu_patch_record_t *record = records + gpu_queue_get(buffer, (buffer->flags & GPU_PATCH_ANALYSIS) != 0); 
 
     record->pc = pc;
     record->flags = GPU_PATCH_BLOCK_ENTER_FLAG;

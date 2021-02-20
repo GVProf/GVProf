@@ -30,21 +30,22 @@ memory_access_callback
   uint32_t laneid = get_laneid();
   uint32_t first_laneid = __ffs(active_mask) - 1;
 
-  gpu_patch_record_t *record = NULL;
+  gpu_patch_record_address_t *record = NULL;
   if (laneid == first_laneid) {
     // 3. Get a record
-    gpu_patch_record_t *records = (gpu_patch_record_t *)buffer->records;
-    record = records + gpu_queue_get(buffer, buffer->flags & GPU_PATCH_ANALYSIS); 
+    gpu_patch_record_address_t *records = (gpu_patch_record_address_t *)buffer->records;
+    record = records + gpu_queue_get(buffer, (buffer->flags & GPU_PATCH_ANALYSIS) != 0); 
 
     // 4. Assign basic values
     record->flags = flags;
+    record->size = size;
     record->active = active_mask;
   }
 
   __syncwarp(active_mask);
 
   uint64_t r = (uint64_t)record;
-  record = (gpu_patch_record_t *)shfl(r, first_laneid, active_mask);
+  record = (gpu_patch_record_address_t *)shfl(r, first_laneid, active_mask);
 
   if (record != NULL) {
     record->address[laneid] = (uint64_t)address;
