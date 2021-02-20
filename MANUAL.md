@@ -46,6 +46,7 @@ In the second pass, we instrument the cubins and invoke `redshow` redundancy ana
       HPCRUN_SANITIZER_KERNEL_SAMPLING_FREQUENCY=<kernel sampling frequency, default: 1>
       HPCRUN_SANITIZER_WHITELIST=<functions to be monitored during execution, default: 0>
       HPCRUN_SANITIZER_BLACKLIST=<functions not monitored during execution, default: 0>
+      HPCRUN_SANITIZER_GPU_ANALYSIS_BLOCKS=<number of gpu blocks dedicated for analysis, default: 0>
 
 ## Interpret profile data
 
