@@ -66,6 +66,7 @@ def format_graph(args):
         ret = ''
         if choice == 'none':
             return ret
+        # context.replace("\'\\\n")
         frames = context.splitlines()
         for frame in frames[::-1]:
             line, func = frame.split('\t')
@@ -89,6 +90,21 @@ def format_graph(args):
         return ret
 
     file_path = args.file
+    # clean bug-ending chars
+    new_lines = []
+    with open(file_path, 'r') as fin:
+        lines = fin.readlines()
+        for line in lines:
+            if line.endswith("'\\"):
+                line = line[:-2]
+            elif line.endswith("'\\\n"):
+                line = line.replace("'\\\n", '\n')
+            new_lines.append(line)
+    with open(file_path, 'w') as fout:
+        for line in new_lines:
+            fout.write(line)
+
+
     agraph = pgv.AGraph(file_path, strict=False)
 
     G = Graph()
