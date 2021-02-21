@@ -79,7 +79,7 @@ __device__ __forceinline__ T shfl(T v, uint32_t srcline, uint32_t mask = 0xFFFFF
 }
 
 template <class T>
-__device__ __forceinline__ T shfl_up(T v, uint32_t delta, uint32_t width,
+__device__ __forceinline__ T shfl_up(T v, uint32_t delta, uint32_t width = GPU_PATCH_WARP_SIZE,
                                      uint32_t mask = 0xFFFFFFFF) {
   T ret;
 #if (__CUDA_ARCH__ >= 300)
@@ -173,19 +173,18 @@ __device__ __forceinline__ T warp_sort(T x) {
   return x;
 }
 
-
 template<typename T>
-__device__ T atomicLoad(const T *addr) {
+__device__ T atomic_load(const T *addr) {
   const volatile T *vaddr = addr; // volatile to bypass cache
   __threadfence(); // for seq_cst loads. Remove for acquire semantics.
   const T value = *vaddr;
   // fence to ensure that dependent reads are correctly ordered
-  __threadfence(); 
+ __threadfence(); 
   return value; 
 }
 
 template<typename T>
-__device__ void atomicStore(T *addr, T value) {
+__device__ void atomic_store(T *addr, T value) {
   volatile T *vaddr = addr; // volatile to bypass cache
   // fence to ensure that previous non-atomic stores are visible to other threads
   __threadfence(); 
