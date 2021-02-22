@@ -133,16 +133,14 @@ interval_compact
   }
 }
 
-#define ITEMS 16
-
-#if 0
-template<typename KEY>
+template<typename KEY, int THREADS, int ITEMS>
 __device__
-void
+int
 interval_merge
 (
  KEY *d_in,
- KEY *d_out
+ KEY *d_out,
+ size_t size
 )
 {
 	enum { TILE_SIZE = THREADS * ITEMS };
@@ -165,13 +163,13 @@ interval_merge
 
 	// Per-thread tile items
 	KEY items[ITEMS];
-  int interval_start[ITEMS];
-  int interval_end[ITEMS];
+  int interval_start_point[ITEMS];
+  int interval_end_point[ITEMS];
   int interval_start_index[ITEMS];
   int interval_end_index[ITEMS];
 
 	// Load items into a blocked arrangement
-	BlockLoadT(temp_storage.load).Load(d_in, items);
+	BlockLoadT(temp_storage.load).Load(d_in, items, size, 0);
 
   for (size_t i = 0; i < ITEMS / 2; ++i) {
     items[i * 2 + 1] += 1;
@@ -181,10 +179,10 @@ interval_merge
 	__syncthreads();
 
   for (size_t i = 0; i < ITEMS / 2; ++i) {
-    interval_start[i * 2] = 1;
-    interval_start[i * 2 + 1] = -1;
-    interval_end[i * 2] = 0;
-    interval_end[i * 2 + 1] = 0;
+    interval_start_point[i * 2] = 1;
+    interval_start_point[i * 2 + 1] = -1;
+    interval_end_point[i * 2] = 0;
+    interval_end_point[i * 2 + 1] = 0;
     interval_start_index[i * 2] = 0;
     interval_start_index[i * 2 + 1] = 0;
     interval_end_index[i * 2] = 0;
@@ -192,42 +190,47 @@ interval_merge
   }
 
 	// Sort keys
-	BlockRadixSortT(temp_storage.sort).Sort(items, interval_start);
+	BlockRadixSortT(temp_storage.sort).Sort(items, interval_start_point);
   __syncthreads();
 
   // Get start/end marks
-  BlockScanT(temp_storage.scan).InclusiveSum(interval_start, interval_start);
+  BlockScanT(temp_storage.scan).InclusiveSum(interval_start_point, interval_start_point);
   __syncthreads();
 
   for (size_t i = 0; i < ITEMS; ++i) {
-    if (interval_start[i] == 1) {
+    if (interval_start_point[i] == 1) {
       // do nothing
-    } else if (interval_start[i] == 0) {
-      interval_end[i] = 1;
+    } else if (interval_start_point[i] == 0) {
+      interval_end_point[i] = 1;
     } else {
-      interval_start[i] = 0;
+      interval_start_point[i] = 0;
     }
   }
+
   // Get interval start index
-  BlockScanT(temp_storage.scan).InclusiveSum(interval_start, interval_start_index);
+  int aggregate = 0;
+  BlockScanT(temp_storage.scan).InclusiveSum(interval_start_point, interval_start_index, aggregate);
   __syncthreads();
 
   // Get interval end index
-  BlockScanT(temp_storage.scan).InclusiveSum(interval_end, interval_end_index);
+  BlockScanT(temp_storage.scan).InclusiveSum(interval_end_point, interval_end_index);
   __syncthreads();
 
   // Put indices in the corresponding slots
   for (size_t i = 0; i < ITEMS; ++i) {
-    if (interval_start[i] == 1) {
+    if (interval_start_point[i] == 1) {
       d_out[(interval_start_index[i] - 1) * 2] = items[i];
     }
-    if (interval_end[i] == 1) {
+    if (interval_end_point[i] == 1) {
       d_out[(interval_end_index[i] - 1) * 2 + 1] = items[i] - 1;
     }
   }
-}
-#endif
 
+  return aggregate;
+}
+
+
+// TODO(Keren): multiple buffers, no need to wait
 extern "C"
 __launch_bounds__(GPU_PATCH_ANALYSIS_THREADS, 1)
 __global__
@@ -248,19 +251,27 @@ gpu_analysis_interval_merge
     // Compact addresses from contiguous thread accesses within each warp
     interval_compact(buffer, read_buffer, write_buffer);
 
-		// TODO(Keren): ensure compact is done by all blocks
     // Compact is done
     __syncthreads();
-    __threadfence_system();
+    __threadfence();
 		if (threadIdx.x == 0 && blockIdx.x == 0) {
 			buffer->analysis = 0;
 		}
-    __threadfence_system();
-    __syncthreads();
 
-    //// Merge read buffer
-    //interval_merge<uint64_t, GPU_PATCH_THREADS, GPU_PATCH_ITEMS>(read_buffer);
-    //// Merge write buffer
-    //interval_merge<uint64_t, GPU_PATCH_THREADS, GPU_PATCH_ITEMS>(write_buffer);
+    // Merge read buffer
+    int size = interval_merge<uint64_t, GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(
+      (uint64_t *)read_buffer->records, (uint64_t *)read_buffer->records, read_buffer->head_index);
+
+    read_buffer->head_index = size;
+    read_buffer->tail_index = size;
+
+    // Merge write buffer
+    size = interval_merge<uint64_t, GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(
+      (uint64_t *)write_buffer->records, (uint64_t *)write_buffer->records, write_buffer->head_index);
+
+    write_buffer->head_index = size;
+    write_buffer->tail_index = size;
+
+    __syncthreads();
   }
 }
