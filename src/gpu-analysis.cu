@@ -16,11 +16,23 @@
  } 
 #define PRINT_ALL(...) \
   printf(__VA_ARGS__)
+#define PRINT_RECORDS(buffer) \
+  __syncthreads(); \
+  if (threadIdx.x == 0) { \
+    gpu_patch_analysis_address_t *records = (gpu_patch_analysis_address_t *)buffer->records; \
+    for (uint32_t i = 0; i < buffer->head_index; ++i) { \
+      printf("gpu analysis-> merged <%p, %p>\n", records[i].start, records[i].end); \
+    } \
+  } \
+  __syncthreads(); 
 #else
 #define PRINT(...)
 #define PRINT_ALL(...)
+#define PRINT_RECORDS(buffer) 
 #endif
 
+#define MAX_U64 (0xFFFFFFFFFFFFFFFF)
+#define MAX_U32 (0xFFFFFFFF)
 
 static
 __device__
@@ -39,8 +51,8 @@ interval_compact
   gpu_patch_analysis_address_t *read_records = (gpu_patch_analysis_address_t *)read_buffer->records;
   gpu_patch_analysis_address_t *write_records = (gpu_patch_analysis_address_t *)write_buffer->records;
 
-	PRINT("gpu analysis->full: %u, analysis: %u, head_index: %u, tail_index: %u, size: %u, num_threads: %u",
-		patch_buffer->full, patch_buffer->analysis, patch_buffer->head_index, patch_buffer->tail_index,
+  PRINT("gpu analysis->full: %u, analysis: %u, head_index: %u, tail_index: %u, size: %u, num_threads: %u",
+    patch_buffer->full, patch_buffer->analysis, patch_buffer->head_index, patch_buffer->tail_index,
     patch_buffer->size, patch_buffer->num_threads)
 
   for (auto iter = warp_index; iter < patch_buffer->head_index; iter += num_warps) {
@@ -133,54 +145,67 @@ interval_compact
   }
 }
 
-template<typename KEY, int THREADS, int ITEMS>
+
+template<int THREADS, int ITEMS>
+static
 __device__
 int
-interval_merge
+interval_merge_impl
 (
- KEY *d_in,
- KEY *d_out,
- size_t size
+ uint64_t *d_in,
+ uint64_t *d_out,
+ uint32_t valid_items
 )
 {
-	enum { TILE_SIZE = THREADS * ITEMS };
-	// Specialize BlockLoad type for our thread block (uses warp-striped loads for coalescing, then transposes in shared memory to a blocked arrangement)
-	typedef cub::BlockLoad<KEY, THREADS, ITEMS, cub::BLOCK_LOAD_WARP_TRANSPOSE> BlockLoadT;
+  enum { TILE_SIZE = THREADS * ITEMS };
+  // Specialize BlockLoad type for our thread block (uses warp-striped loads for coalescing, then transposes in shared memory to a blocked arrangement)
+  typedef cub::BlockLoad<uint64_t, THREADS, ITEMS, cub::BLOCK_LOAD_WARP_TRANSPOSE> BlockLoadT;
   // Specialize BlockStore type for our thread block (uses warp-striped loads for coalescing, then transposes in shared memory to a blocked arrangement)
-  typedef cub::BlockStore<KEY, THREADS, ITEMS, cub::BLOCK_STORE_WARP_TRANSPOSE> BlockStoreT;
-	// Specialize BlockRadixSort type for our thread block
-	typedef cub::BlockRadixSort<KEY, THREADS, ITEMS, int> BlockRadixSortT;
+  typedef cub::BlockStore<uint64_t, THREADS, ITEMS, cub::BLOCK_STORE_WARP_TRANSPOSE> BlockStoreT;
+  // Specialize BlockRadixSort type for our thread block
+  typedef cub::BlockRadixSort<uint64_t, THREADS, ITEMS, int> BlockRadixSortT;
   // Specialize BlockScan type for our thread block
   typedef cub::BlockScan<int, THREADS> BlockScanT;
-	// Shared memory
-	__shared__ union TempStorage
-	{
-		typename BlockLoadT::TempStorage        load;
-    typename BlockStoreT::TempStorage       store;
-		typename BlockRadixSortT::TempStorage   sort;
-    typename BlockScanT::TempStorage        scan;
-	} temp_storage;
+  // Specialize BlockDiscontinuity for a 1D block of 128 threads on type int
+  typedef cub::BlockDiscontinuity<int, THREADS> BlockDiscontinuity;
+  // Shared memory
+  __shared__ union TempStorage
+  {
+    typename BlockLoadT::TempStorage         load;
+    typename BlockStoreT::TempStorage        store;
+    typename BlockRadixSortT::TempStorage    sort;
+    typename BlockScanT::TempStorage         scan;
+    typename BlockDiscontinuity::TempStorage disc;
+  } temp_storage;
 
-	// Per-thread tile items
-	KEY items[ITEMS];
+  // Per-thread tile items
+  uint64_t items[ITEMS];
   int interval_start_point[ITEMS];
   int interval_end_point[ITEMS];
   int interval_start_index[ITEMS];
   int interval_end_index[ITEMS];
 
-	// Load items into a blocked arrangement
-	BlockLoadT(temp_storage.load).Load(d_in, items, size, 0);
+  // Load items into a blocked arrangement
+  BlockLoadT(temp_storage.load).Load(d_in, items, valid_items, MAX_U64);
+  __syncthreads();
 
-  for (size_t i = 0; i < ITEMS / 2; ++i) {
-    items[i * 2 + 1] += 1;
+  for (uint32_t i = 0; i < ITEMS / 2; ++i) {
+    if (items[i * 2 + 1] != MAX_U64) {
+      items[i * 2 + 1] += 1;
+    }
   }
 
-	// Barrier for smem reuse
-	__syncthreads();
-
-  for (size_t i = 0; i < ITEMS / 2; ++i) {
-    interval_start_point[i * 2] = 1;
-    interval_start_point[i * 2 + 1] = -1;
+  for (uint32_t i = 0; i < ITEMS / 2; ++i) {
+    if (items[i * 2] != MAX_U64) {
+      interval_start_point[i * 2] = 1;
+    } else {
+      interval_start_point[i * 2] = 0;
+    }
+    if (items[i * 2 + 1] != MAX_U64) {
+      interval_start_point[i * 2 + 1] = -1;
+    } else {
+      interval_start_point[i * 2 + 1] = 0;
+    }
     interval_end_point[i * 2] = 0;
     interval_end_point[i * 2 + 1] = 0;
     interval_start_index[i * 2] = 0;
@@ -189,19 +214,28 @@ interval_merge
     interval_end_index[i * 2 + 1] = 0;
   }
 
-	// Sort keys
-	BlockRadixSortT(temp_storage.sort).Sort(items, interval_start_point);
+  // Sort keys
+  BlockRadixSortT(temp_storage.sort).Sort(items, interval_start_point);
   __syncthreads();
 
-  // Get start/end marks
+  // Get end marks
   BlockScanT(temp_storage.scan).InclusiveSum(interval_start_point, interval_start_point);
   __syncthreads();
 
-  for (size_t i = 0; i < ITEMS; ++i) {
-    if (interval_start_point[i] == 1) {
-      // do nothing
-    } else if (interval_start_point[i] == 0) {
+  for (uint32_t i = 0; i < ITEMS; ++i) {
+    if (items[i] != MAX_U64 && interval_start_point[i] == 0) {
       interval_end_point[i] = 1;
+    }
+  }
+
+  // Get start marks
+  // XXX(Keren): this interface has a different input and output order.
+  BlockDiscontinuity(temp_storage.disc).FlagHeads(interval_start_point, interval_end_point, cub::Inequality());
+  __syncthreads();
+
+  for (uint32_t i = 0; i < ITEMS; ++i) {
+    if (items[i] != MAX_U64 && interval_start_point[i] == 1 && interval_end_point[i] != 1) {
+      interval_start_point[i] = 1;
     } else {
       interval_start_point[i] = 0;
     }
@@ -217,7 +251,7 @@ interval_merge
   __syncthreads();
 
   // Put indices in the corresponding slots
-  for (size_t i = 0; i < ITEMS; ++i) {
+  for (uint32_t i = 0; i < ITEMS; ++i) {
     if (interval_start_point[i] == 1) {
       d_out[(interval_start_index[i] - 1) * 2] = items[i];
     }
@@ -227,6 +261,45 @@ interval_merge
   }
 
   return aggregate;
+}
+
+
+static
+__device__
+void
+interval_merge
+(
+ gpu_patch_buffer_t *buffer
+)
+{
+  uint32_t cur_index = 0;
+  uint32_t items = 0;
+  uint32_t tile_size = GPU_PATCH_ANALYSIS_THREADS * GPU_PATCH_ANALYSIS_ITEMS;
+  for (; cur_index + (tile_size >> 1) < buffer->head_index; cur_index += (tile_size >> 1)) {
+    items += interval_merge_impl<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(
+      (uint64_t *)buffer->records + (cur_index << 1), (uint64_t *)buffer->records + (items << 1), tile_size);
+    PRINT("gpu analysis-> head_index %u, cur_index %u, items %u\n", buffer->head_index, cur_index, tile_size);
+    __syncthreads();
+  }
+  // Remainder
+  if (cur_index < buffer->head_index) {
+    items += interval_merge_impl<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(
+      (uint64_t *)buffer->records + (cur_index << 1), (uint64_t *)buffer->records + (items << 1), ((buffer->head_index - cur_index) << 1));
+    PRINT("gpu analysis-> head_index %u, cur_index %u, items %u\n", buffer->head_index, cur_index, (buffer->head_index - cur_index) << 1);
+    __syncthreads();
+  }
+
+  // Final merge
+  if (items < tile_size) {
+    items = interval_merge_impl<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(
+      (uint64_t *)buffer->records, (uint64_t *)buffer->records, (items << 1));
+    __syncthreads();
+  }
+
+  if (threadIdx.x == 0) {
+    buffer->head_index = items;
+    buffer->tail_index = items;
+  }
 }
 
 
@@ -244,7 +317,7 @@ gpu_analysis_interval_merge
 {
   // Continue processing until CPU notifies analysis is done
   while (read_buffer->analysis == 1 || write_buffer->analysis == 1) {
-		// Wait until GPU notifies buffer is full. i.e., analysis can begin process.
+    // Wait until GPU notifies buffer is full. i.e., analysis can begin process.
     // Block sampling is not allowed
     while (buffer->analysis == 0 && atomic_load(&buffer->num_threads) != 0); 
 
@@ -253,24 +326,28 @@ gpu_analysis_interval_merge
 
     // Compact is done
     __syncthreads();
-    __threadfence();
-		if (threadIdx.x == 0 && blockIdx.x == 0) {
-			buffer->analysis = 0;
-		}
 
     // Merge read buffer
-    int size = interval_merge<uint64_t, GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(
-      (uint64_t *)read_buffer->records, (uint64_t *)read_buffer->records, read_buffer->head_index);
+    if (read_buffer->head_index != 0) {
+      interval_merge(read_buffer);
 
-    read_buffer->head_index = size;
-    read_buffer->tail_index = size;
+      PRINT("gpu analysis-> read buffer\n")
+      PRINT_RECORDS(read_buffer)
+    }
 
     // Merge write buffer
-    size = interval_merge<uint64_t, GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(
-      (uint64_t *)write_buffer->records, (uint64_t *)write_buffer->records, write_buffer->head_index);
+    if (write_buffer->head_index != 0) {
+      interval_merge(write_buffer);
 
-    write_buffer->head_index = size;
-    write_buffer->tail_index = size;
+      PRINT("gpu analysis-> write buffer\n")
+      PRINT_RECORDS(write_buffer)
+    }
+
+    __syncthreads();
+
+    if (threadIdx.x == 0) {
+      buffer->analysis = 0;
+    }
 
     __syncthreads();
   }
