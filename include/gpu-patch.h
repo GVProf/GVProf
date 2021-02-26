@@ -22,9 +22,10 @@ enum GPUPatchFlags {
 };
 
 enum GPUPatchType {
-  GPU_PATCH_DEFAULT = 0,
-  GPU_PATCH_ADDRESS_PATCH = 1,
-  GPU_PATCH_ADDRESS_ANALYSIS = 2
+  GPU_PATCH_TYPE_DEFAULT = 0,
+  GPU_PATCH_TYPE_ADDRESS_PATCH = 1,
+  GPU_PATCH_TYPE_ADDRESS_ANALYSIS = 2,
+  GPU_PATCH_TYPE_COUNT = 3
 };
 
 // Complete record
@@ -39,7 +40,7 @@ typedef struct gpu_patch_record {
   uint8_t value[GPU_PATCH_WARP_SIZE][GPU_PATCH_MAX_ACCESS_SIZE];  // STS.128->16 bytes
 } gpu_patch_record_t;
 
-// Address only, do not support sampling
+// Address only
 typedef struct gpu_patch_record_address {
   uint32_t flags;
   uint32_t active;
@@ -47,7 +48,7 @@ typedef struct gpu_patch_record_address {
   uint64_t address[GPU_PATCH_WARP_SIZE];
 } gpu_patch_record_address_t;
 
-// Address only, do not support sampling
+// Address only, gpu analysis
 typedef struct gpu_patch_analysis_address {
   uint64_t start;
   uint64_t end;
