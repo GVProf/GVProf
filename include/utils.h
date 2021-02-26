@@ -151,9 +151,7 @@ __device__ __forceinline__ T comparator(T x, uint32_t lane_mask, bool dir,
 }
 
 template <typename T>
-__device__ __forceinline__ T warp_sort(T x) {
-  uint32_t laneid = get_laneid();
-
+__device__ __forceinline__ T warp_sort(T x, uint32_t laneid) {
   x = comparator(x, 1, bfe(laneid, 1) ^ bfe(laneid, 0));  // A, sorted sequences of length 2
   x = comparator(x, 2, bfe(laneid, 2) ^ bfe(laneid, 1));  // B
   x = comparator(x, 1, bfe(laneid, 2) ^ bfe(laneid, 0));  // C, sorted sequences of length 4

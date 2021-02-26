@@ -45,7 +45,7 @@ interval_compact
 )
 {
   auto warp_index = blockDim.x / GPU_PATCH_WARP_SIZE * blockIdx.x + threadIdx.x / GPU_PATCH_WARP_SIZE;
-  auto num_warps = blockDim.x / GPU_PATCH_WARP_SIZE * gridDim.x;
+  auto num_warps = blockDim.x / GPU_PATCH_WARP_SIZE;
   auto laneid = get_laneid();
   gpu_patch_record_address_t *records = (gpu_patch_record_address_t *)patch_buffer->records;
   gpu_patch_analysis_address_t *read_records = (gpu_patch_analysis_address_t *)read_buffer->records;
@@ -64,15 +64,22 @@ interval_compact
     }
 
     // Sort addresses and check if they are contiguous
-    address_start = warp_sort(address_start);
-    uint32_t first_laneid = __ffs(record->active) - 1;
-    uint64_t interval_start = shfl_up(address_start, 1);
+    address_start = warp_sort(address_start, laneid);
+    // First none zero
+    uint32_t b = ballot((int32_t)(address_start != 0));
+    if (b == 0) {
+      continue;
+    }
+
+    uint32_t first_laneid = __ffs(b) - 1;
+    uint64_t interval_start = 0;
+    interval_start = shfl_up(address_start, 1);
 
     PRINT_ALL("gpu_analysis <%d, %d>->active: %x, interval_start: %p, address_start: %p\n",
       blockIdx.x, threadIdx.x, record->active, interval_start, address_start);
 
     int32_t interval_start_point = 0;
-    if (address_start != 0 && (interval_start + record->size != address_start)) {
+    if (first_laneid == laneid || (address_start != 0 && (interval_start + record->size < address_start))) {
       interval_start_point = 1;
     }
 
@@ -83,11 +90,13 @@ interval_compact
     // 76543210
     //       x
     // laneid = 1
-    uint32_t b = ballot(interval_start_point);
+    b = ballot(interval_start_point);
 
     PRINT_ALL("gpu_analysis <%d, %d>->ballot: %x, interval_start_point: %d, address_start: %p\n",
       blockIdx.x, threadIdx.x, b, interval_start_point, address_start);
 
+    // 00100010b
+    // b_rev
     // 01000100b
     // 76543210
     //  x
@@ -105,7 +114,7 @@ interval_compact
     // p_rev = 2
     // p = 8 - 2 - 1 = 5
     uint32_t p = bfind(laneid_rev_mask & b_rev);
-    if (p != 0xFFFFFFFF) {
+    if (p != MAX_U32) {
       // Get the end of the interval
       // max(p) = 30
       p = GPU_PATCH_WARP_SIZE - p - 1 - 1;
@@ -316,10 +325,15 @@ gpu_analysis_interval_merge
 )
 {
   // Continue processing until CPU notifies analysis is done
-  while (read_buffer->analysis == 1 || write_buffer->analysis == 1) {
+  while (true) {
     // Wait until GPU notifies buffer is full. i.e., analysis can begin process.
     // Block sampling is not allowed
-    while (buffer->analysis == 0 && atomic_load(&buffer->num_threads) != 0); 
+    while (buffer->analysis == 0 && atomic_load(&buffer->num_threads) != 0);
+
+    if (atomic_load(&buffer->num_threads) == 0) {
+      // buffer->analysis must be 0
+      break;
+    }
 
     // Compact addresses from contiguous thread accesses within each warp
     interval_compact(buffer, read_buffer, write_buffer);
@@ -327,28 +341,20 @@ gpu_analysis_interval_merge
     // Compact is done
     __syncthreads();
 
-    // Merge read buffer
-    if (read_buffer->head_index != 0) {
-      interval_merge(read_buffer);
-
-      PRINT("gpu analysis-> read buffer\n")
-      PRINT_RECORDS(read_buffer)
-    }
-
-    // Merge write buffer
-    if (write_buffer->head_index != 0) {
-      interval_merge(write_buffer);
-
-      PRINT("gpu analysis-> write buffer\n")
-      PRINT_RECORDS(write_buffer)
-    }
-
-    __syncthreads();
-
     if (threadIdx.x == 0) {
       buffer->analysis = 0;
     }
 
     __syncthreads();
+  }
+
+  // Last analysis
+  interval_compact(buffer, read_buffer, write_buffer);
+
+  // Compact is done
+  __syncthreads();
+
+  if (threadIdx.x == 0) {
+    atomic_store(&read_buffer->num_threads, (uint32_t)0);
   }
 }
