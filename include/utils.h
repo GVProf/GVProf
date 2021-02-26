@@ -189,4 +189,12 @@ __device__ void atomic_store(T *addr, T value) {
   *vaddr = value;
 }
 
+template<typename T>
+__device__ void atomic_store_system(T *addr, T value) {
+  volatile T *vaddr = addr; // volatile to bypass cache
+  // fence to ensure that previous non-atomic stores are visible to other threads
+  __threadfence_system(); 
+  *vaddr = value;
+}
+
 #endif

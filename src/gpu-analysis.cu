@@ -65,12 +65,9 @@ interval_compact
 
     // Sort addresses and check if they are contiguous
     address_start = warp_sort(address_start, laneid);
+
     // First none zero
     uint32_t b = ballot((int32_t)(address_start != 0));
-    if (b == 0) {
-      continue;
-    }
-
     uint32_t first_laneid = __ffs(b) - 1;
     uint64_t interval_start = 0;
     interval_start = shfl_up(address_start, 1);
@@ -355,6 +352,6 @@ gpu_analysis_interval_merge
   __syncthreads();
 
   if (threadIdx.x == 0) {
-    atomic_store(&read_buffer->num_threads, (uint32_t)0);
+    atomic_store_system(&read_buffer->num_threads, (uint32_t)0);
   }
 }
