@@ -163,7 +163,6 @@ interval_merge_impl
  uint32_t valid_items
 )
 {
-  enum { TILE_SIZE = THREADS * ITEMS };
   // Specialize BlockLoad type for our thread block (uses warp-striped loads for coalescing, then transposes in shared memory to a blocked arrangement)
   typedef cub::BlockLoad<uint64_t, THREADS, ITEMS, cub::BLOCK_LOAD_WARP_TRANSPOSE> BlockLoadT;
   // Specialize BlockStore type for our thread block (uses warp-striped loads for coalescing, then transposes in shared memory to a blocked arrangement)
@@ -273,6 +272,7 @@ interval_merge_impl
 }
 
 
+template<int THREADS, int ITEMS>
 static
 __device__
 void
@@ -283,27 +283,35 @@ interval_merge
 {
   uint32_t cur_index = 0;
   uint32_t items = 0;
-  uint32_t tile_size = GPU_PATCH_ANALYSIS_THREADS * GPU_PATCH_ANALYSIS_ITEMS;
+  uint32_t tile_size = THREADS * ITEMS;
   uint64_t *records = (uint64_t *)buffer->records;
   for (; cur_index + (tile_size / 2) <= buffer->head_index; cur_index += (tile_size / 2)) {
-    items += interval_merge_impl<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(
-      records + cur_index * 2, records + items * 2, tile_size);
+    items += interval_merge_impl<THREADS, ITEMS>(records + cur_index * 2, records + items * 2, tile_size);
     PRINT("gpu analysis-> head_index %u, cur_index %u, tile_size %u, items %u\n", buffer->head_index, cur_index, tile_size, items);
     __syncthreads();
   }
   // Remainder
   if (cur_index < buffer->head_index) {
-    items += interval_merge_impl<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(
-      records + cur_index * 2, records + items * 2, ((buffer->head_index - cur_index) * 2));
+    items += interval_merge_impl<THREADS, ITEMS>(records + cur_index * 2, records + items * 2, ((buffer->head_index - cur_index) * 2));
     PRINT("gpu analysis-> head_index %u, cur_index %u, tile_size %u, items %u\n", buffer->head_index, cur_index, (buffer->head_index - cur_index) * 2, items);
     __syncthreads();
   }
 
-  // Final merge
-  if (items < (tile_size >> 1)) {
-    items = interval_merge_impl<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(
-      (uint64_t *)buffer->records, (uint64_t *)buffer->records, (items << 1));
-    __syncthreads();
+  // Second pass
+  if (items <= (tile_size >> 1) && items < buffer->head_index) {
+    cur_index = 0;
+    items = 0;
+    for (; cur_index + (tile_size / 2) <= buffer->head_index; cur_index += (tile_size / 2)) {
+      items += interval_merge_impl<THREADS, ITEMS>(records + cur_index * 2, records + items * 2, tile_size);
+      PRINT("gpu analysis-> head_index %u, cur_index %u, tile_size %u, items %u\n", buffer->head_index, cur_index, tile_size, items);
+      __syncthreads();
+    }
+    // Remainder
+    if (cur_index < buffer->head_index) {
+      items += interval_merge_impl<THREADS, ITEMS>(records + cur_index * 2, records + items * 2, ((buffer->head_index - cur_index) * 2));
+      PRINT("gpu analysis-> head_index %u, cur_index %u, tile_size %u, items %u\n", buffer->head_index, cur_index, (buffer->head_index - cur_index) * 2, items);
+      __syncthreads();
+    }
   }
 
   if (threadIdx.x == 0) {
@@ -348,7 +356,7 @@ gpu_analysis_interval_merge
 
     // Merge read buffer
     if (read_buffer->head_index != 0) {
-      interval_merge(read_buffer);
+      interval_merge<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(read_buffer);
 
       PRINT("gpu analysis-> read buffer\n")
       PRINT_RECORDS(read_buffer)
@@ -356,7 +364,7 @@ gpu_analysis_interval_merge
 
     // Merge write buffer
     if (write_buffer->head_index != 0) {
-      interval_merge(write_buffer);
+      interval_merge<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(write_buffer);
 
       PRINT("gpu analysis-> write buffer\n")
       PRINT_RECORDS(write_buffer)
@@ -373,7 +381,7 @@ gpu_analysis_interval_merge
 
 	// Merge read buffer
 	if (read_buffer->head_index != 0) {
-		interval_merge(read_buffer);
+		interval_merge<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(read_buffer);
 
 		PRINT("gpu analysis-> read buffer\n")
 			PRINT_RECORDS(read_buffer)
@@ -381,7 +389,7 @@ gpu_analysis_interval_merge
 
 	// Merge write buffer
 	if (write_buffer->head_index != 0) {
-		interval_merge(write_buffer);
+		interval_merge<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(write_buffer);
 
 		PRINT("gpu analysis-> write buffer\n")
 			PRINT_RECORDS(write_buffer)
