@@ -172,7 +172,7 @@ __device__ __forceinline__ T warp_sort(T x, uint32_t laneid) {
 }
 
 template<typename T>
-__device__ T atomic_load(const T *addr) {
+__device__ __forceinline__ T atomic_load(const T *addr) {
   const volatile T *vaddr = addr; // volatile to bypass cache
   __threadfence(); // for seq_cst loads. Remove for acquire semantics.
   const T value = *vaddr;
@@ -182,7 +182,7 @@ __device__ T atomic_load(const T *addr) {
 }
 
 template<typename T>
-__device__ void atomic_store(T *addr, T value) {
+__device__ __forceinline__ void atomic_store(T *addr, T value) {
   volatile T *vaddr = addr; // volatile to bypass cache
   // fence to ensure that previous non-atomic stores are visible to other threads
   __threadfence(); 
@@ -190,11 +190,38 @@ __device__ void atomic_store(T *addr, T value) {
 }
 
 template<typename T>
-__device__ void atomic_store_system(T *addr, T value) {
+__device__ __forceinline__ void atomic_store_system(T *addr, T value) {
   volatile T *vaddr = addr; // volatile to bypass cache
   // fence to ensure that previous non-atomic stores are visible to other threads
   __threadfence_system(); 
   *vaddr = value;
+}
+
+template<typename T, typename C>
+__device__ __forceinline__ uint32_t map_upper_bound(T *map, T value, uint32_t len, C cmp) {
+  uint32_t low = 0;
+  uint32_t high = len;
+  uint32_t mid = 0;
+  while (low < high) {
+    mid = (high - low) / 2 + low;
+    if (cmp(map[mid], value)) {
+      low = mid + 1; 
+    } else {
+      high = mid; 
+    }
+  }
+  return low;
+}
+
+template<typename T, typename C>
+__device__ __forceinline__ uint32_t map_prev(T *map, T value, uint32_t len, C cmp) {
+  uint32_t pos = map_upper_bound<T, C>(map, value, len, cmp);
+  if (pos != 0) {
+    --pos;
+  } else {
+    pos = len;
+  }
+  return pos;
 }
 
 #endif

@@ -8,6 +8,7 @@
 #define GPU_PATCH_WARP_SIZE (32)
 #define GPU_PATCH_ANALYSIS_THREADS (1024)
 #define GPU_PATCH_ANALYSIS_ITEMS (4)
+#define GPU_PATCH_ADDRESS_DICT_SIZE (1024)
 
 enum GPUPatchFlags {
   GPU_PATCH_NONE = 0,
@@ -54,6 +55,13 @@ typedef struct gpu_patch_analysis_address {
   uint64_t end;
 } gpu_patch_analysis_address_t;
 
+// Auxiliary data
+typedef struct gpu_patch_aux_address_dict {
+  uint32_t size;
+  gpu_patch_analysis_address_t start_end[GPU_PATCH_ADDRESS_DICT_SIZE];
+  uint32_t hit[GPU_PATCH_ADDRESS_DICT_SIZE];
+} gpu_patch_aux_address_dict_t;
+
 typedef struct gpu_patch_buffer {
   volatile uint32_t full;
   volatile uint32_t analysis;
@@ -66,6 +74,7 @@ typedef struct gpu_patch_buffer {
   uint32_t type;
   uint32_t flags;  // read or write or both
   void *records;
+  void *aux;
 } gpu_patch_buffer_t;
 
 #endif

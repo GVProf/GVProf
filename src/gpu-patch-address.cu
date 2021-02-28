@@ -7,6 +7,14 @@
 
 #include <sanitizer_patching.h>
 
+struct gpu_patch_analysis_address_comparator {
+  __device__
+  bool operator()(gpu_patch_analysis_address &l, gpu_patch_analysis_address &r) {
+    return l.start <= r.start;
+  }
+};
+
+
 /*
  * Monitor each shared and global memory access.
  */
@@ -30,6 +38,35 @@ memory_access_callback
   uint32_t laneid = get_laneid();
   uint32_t first_laneid = __ffs(active_mask) - 1;
 
+  uint32_t keep = 1;
+  if (buffer->aux != NULL && (flags & GPU_PATCH_READ) != 0 && (flags & GPU_PATCH_WRITE) == 0) {
+    // Read address can be filtered
+    gpu_patch_aux_address_dict *address_dict = (gpu_patch_aux_address_dict *)buffer->aux;
+    gpu_patch_analysis_address_t *start_end = address_dict->start_end;
+    gpu_patch_analysis_address_t addr = { (uint64_t)address, 0 };
+    uint32_t pos = map_prev(start_end, addr, address_dict->size, gpu_patch_analysis_address_comparator());
+
+    if (pos != address_dict->size) {
+      // Find an existing entry
+      if (atomic_load(address_dict->hit + pos) == 0) {
+        // Update
+        atomic_store(address_dict->hit + pos, (uint32_t)1);
+      } else {
+        // Filter out
+        keep = 0;
+      }
+    } 
+  }
+
+  __syncwarp(active_mask);
+
+  uint32_t all_keep = 0;
+  all_keep = ballot((uint32_t)keep, active_mask);
+  if (all_keep == 0) {
+    // Fast path
+    return SANITIZER_PATCH_SUCCESS;
+  }
+
   gpu_patch_record_address_t *record = NULL;
   if (laneid == first_laneid) {
     // 3. Get a record
@@ -39,7 +76,7 @@ memory_access_callback
     // 4. Assign basic values
     record->flags = flags;
     record->size = size;
-    record->active = active_mask;
+    record->active = all_keep & active_mask;
   }
 
   __syncwarp(active_mask);
@@ -47,7 +84,7 @@ memory_access_callback
   uint64_t r = (uint64_t)record;
   record = (gpu_patch_record_address_t *)shfl(r, first_laneid, active_mask);
 
-  if (record != NULL) {
+  if (record != NULL && keep == 1) {
     record->address[laneid] = (uint64_t)address;
   }
 
