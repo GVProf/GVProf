@@ -1,6 +1,3 @@
-/*
- * Use C style programming in this file
- */
 #include "gpu-patch.h"
 #include "gpu-queue.h"
 #include "utils.h"

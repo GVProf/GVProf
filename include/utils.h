@@ -132,9 +132,9 @@ __device__ __forceinline__ uint32_t brev(uint32_t source) {
 }
 
 __device__ __forceinline__ uint32_t bfind(uint32_t source) {
-	uint32_t bit_index;
-	asm volatile("bfind.u32 %0, %1;" : "=r"(bit_index) : "r"((uint32_t) source));
-	return bit_index;
+  uint32_t bit_index;
+  asm volatile("bfind.u32 %0, %1;" : "=r"(bit_index) : "r"((uint32_t)source));
+  return bit_index;
 }
 
 __device__ __forceinline__ uint32_t fns(uint32_t source, uint32_t base_index) {
@@ -171,33 +171,33 @@ __device__ __forceinline__ T warp_sort(T x, uint32_t laneid) {
   return x;
 }
 
-template<typename T>
+template <typename T>
 __device__ __forceinline__ T atomic_load(const T *addr) {
-  const volatile T *vaddr = addr; // volatile to bypass cache
-  __threadfence(); // for seq_cst loads. Remove for acquire semantics.
+  const volatile T *vaddr = addr;  // volatile to bypass cache
+  __threadfence();                 // for seq_cst loads. Remove for acquire semantics.
   const T value = *vaddr;
   // fence to ensure that dependent reads are correctly ordered
- __threadfence(); 
-  return value; 
+  __threadfence();
+  return value;
 }
 
-template<typename T>
+template <typename T>
 __device__ __forceinline__ void atomic_store(T *addr, T value) {
-  volatile T *vaddr = addr; // volatile to bypass cache
+  volatile T *vaddr = addr;  // volatile to bypass cache
   // fence to ensure that previous non-atomic stores are visible to other threads
-  __threadfence(); 
+  __threadfence();
   *vaddr = value;
 }
 
-template<typename T>
+template <typename T>
 __device__ __forceinline__ void atomic_store_system(T *addr, T value) {
-  volatile T *vaddr = addr; // volatile to bypass cache
+  volatile T *vaddr = addr;  // volatile to bypass cache
   // fence to ensure that previous non-atomic stores are visible to other threads
-  __threadfence_system(); 
+  __threadfence_system();
   *vaddr = value;
 }
 
-template<typename T, typename C>
+template <typename T, typename C>
 __device__ __forceinline__ uint32_t map_upper_bound(T *map, T value, uint32_t len, C cmp) {
   uint32_t low = 0;
   uint32_t high = len;
@@ -205,15 +205,15 @@ __device__ __forceinline__ uint32_t map_upper_bound(T *map, T value, uint32_t le
   while (low < high) {
     mid = (high - low) / 2 + low;
     if (cmp(map[mid], value)) {
-      low = mid + 1; 
+      low = mid + 1;
     } else {
-      high = mid; 
+      high = mid;
     }
   }
   return low;
 }
 
-template<typename T, typename C>
+template <typename T, typename C>
 __device__ __forceinline__ uint32_t map_prev(T *map, T value, uint32_t len, C cmp) {
   uint32_t pos = map_upper_bound<T, C>(map, value, len, cmp);
   if (pos != 0) {

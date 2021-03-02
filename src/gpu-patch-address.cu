@@ -1,6 +1,3 @@
-/*
- * Use C style programming in this file
- */
 #include "gpu-patch.h"
 #include "gpu-queue.h"
 #include "utils.h"
@@ -13,7 +10,6 @@ struct gpu_patch_analysis_address_comparator {
     return l.start <= r.start;
   }
 };
-
 
 /*
  * Monitor each shared and global memory access.
@@ -39,7 +35,8 @@ memory_access_callback
   uint32_t first_laneid = __ffs(active_mask) - 1;
 
   uint32_t keep = 1;
-  if (buffer->aux != NULL && (flags & GPU_PATCH_READ) != 0 && (flags & GPU_PATCH_WRITE) == 0) {
+  if (buffer->aux != NULL && (flags & GPU_PATCH_READ) != 0 &&
+    (flags & (GPU_PATCH_WRITE | GPU_PATCH_SHARED | GPU_PATCH_LOCAL)) == 0) {
     // Read address can be filtered
     gpu_patch_aux_address_dict *address_dict = (gpu_patch_aux_address_dict *)buffer->aux;
     gpu_patch_analysis_address_t *start_end = address_dict->start_end;
@@ -180,4 +177,3 @@ sanitizer_block_exit_callback
 
   return SANITIZER_PATCH_SUCCESS;
 }
-
