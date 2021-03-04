@@ -376,21 +376,21 @@ gpu_analysis_interval_merge
   // Compact is done
   __syncthreads();
 
-	// Merge read buffer
-	if (read_buffer->head_index != 0) {
-		interval_merge<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(read_buffer);
+  // Merge read buffer
+  if (read_buffer->head_index != 0) {
+    interval_merge<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(read_buffer);
 
-		PRINT("gpu analysis-> read buffer\n")
-			PRINT_RECORDS(read_buffer)
-	}
+    PRINT("gpu analysis-> read buffer\n")
+    PRINT_RECORDS(read_buffer)
+  }
 
-	// Merge write buffer
-	if (write_buffer->head_index != 0) {
-		interval_merge<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(write_buffer);
+  // Merge write buffer
+  if (write_buffer->head_index != 0) {
+    interval_merge<GPU_PATCH_ANALYSIS_THREADS, GPU_PATCH_ANALYSIS_ITEMS>(write_buffer);
 
-		PRINT("gpu analysis-> write buffer\n")
-			PRINT_RECORDS(write_buffer)
-	}
+    PRINT("gpu analysis-> write buffer\n")
+    PRINT_RECORDS(write_buffer)
+  }
 
   __syncthreads();
 
