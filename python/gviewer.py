@@ -66,6 +66,7 @@ def format_graph(args):
         ret = ''
         if choice == 'none':
             return ret
+        # context.replace("\'\\\n")
         frames = context.splitlines()
         for frame in frames[::-1]:
             line, func = frame.split('\t')
@@ -89,6 +90,21 @@ def format_graph(args):
         return ret
 
     file_path = args.file
+    # clean bug-ending chars
+    new_lines = []
+    with open(file_path, 'r') as fin:
+        lines = fin.readlines()
+        for line in lines:
+            if line.endswith("'\\"):
+                line = line[:-2]
+            elif line.endswith("'\\\n"):
+                line = line.replace("'\\\n", '\n')
+            new_lines.append(line)
+    with open(file_path, 'w') as fout:
+        for line in new_lines:
+            fout.write(line)
+
+
     agraph = pgv.AGraph(file_path, strict=False)
 
     G = Graph()
@@ -266,9 +282,14 @@ def create_pretty_graph(G):
 
     def label_node_duplicate(node):
         dup = node.attr['duplicate']
+        label = ''
+
+        if dup is None:
+          return label
+
         dup_entries = dup.split(';')
         from_node = node.get_name()
-        label = ''
+
         for dup_entry in dup_entries:
             if len(dup_entry) > 0:
                 dup_node = dup_entry.split(',')[0]
@@ -323,7 +344,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file', help='file name')
 parser.add_argument('-cf', '--context-filter', choices=[
                     'path', 'file', 'func', 'all', 'none'], default='all', help='show part of the calling context')
-parser.add_argument('-k', '--known', action='store_true', default=True,
+parser.add_argument('-k', '--known', action='store_true', default=False,
                     help='show only known function')
 parser.add_argument('-l', '--leaf', action='store_true', default=False,
                     help='show only leaf function')
