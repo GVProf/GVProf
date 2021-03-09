@@ -24,8 +24,7 @@ extern "C" __device__ uint32_t gpu_queue_get(gpu_patch_buffer_t *buffer, uint32_
           __threadfence();
           buffer->analysis = 1;
           __threadfence();
-          while (buffer->analysis == 1)
-            ;
+          while (buffer->analysis == 1);
         } else {
           // Sync with CPU
           __threadfence_system();

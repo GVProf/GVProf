@@ -18,6 +18,14 @@ __device__ __forceinline__ uint64_t get_unique_thread_id() {
   return get_flat_block_id() * blockDim.x * blockDim.y * blockDim.z + get_flat_thread_id();
 }
 
+__device__ __forceinline__ uint64_t get_grid_num_threads() {
+  return gridDim.x * gridDim.y * gridDim.z * blockDim.x * blockDim.y * blockDim.z;
+}
+
+__device__ __forceinline__ uint64_t get_block_num_threads() {
+  return blockDim.x * blockDim.y * blockDim.z;
+}
+
 __device__ __forceinline__ uint32_t get_laneid() {
   uint32_t laneid = 0;
   asm volatile("mov.u32 %0, %laneid;" : "=r"(laneid));

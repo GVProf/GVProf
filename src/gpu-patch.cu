@@ -172,7 +172,7 @@ sanitizer_block_exit_callback
     gpu_queue_push(buffer);
 
     // Finish a bunch of threads
-    atomicAdd(&buffer->num_threads, -pop_count);
+    atomicAdd(&(buffer->num_threads), -pop_count);
   }
 
   return SANITIZER_PATCH_SUCCESS;
