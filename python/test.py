@@ -6,10 +6,13 @@ from tests.value_pattern_test import ValuePatternTest
 from tests.instruction_test import InstructionTest
 from test_cases import Test
 
-parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('-c', '--case', help='case name')
-parser.add_argument('-m', '--mode', choices=['data_flow', 'redundancy', 'value_pattern', 'instruction', 'all'], default='all', help='mode name')
-parser.add_argument('-a', '--arch', choices=['sm_70', 'sm_72', 'sm_75', 'sm_80', 'sm_85'], default='sm_70', help='gpu arch name')
+parser.add_argument('-m', '--mode', choices=['data_flow', 'redundancy',
+                    'value_pattern', 'instruction', 'all'], default='all', help='mode name')
+parser.add_argument('-a', '--arch', choices=['sm_70', 'sm_72',
+                    'sm_75', 'sm_80', 'sm_85'], default='sm_70', help='gpu arch name')
 args = parser.parse_args()
 
 tests = []

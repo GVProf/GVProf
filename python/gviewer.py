@@ -104,7 +104,6 @@ def format_graph(args):
         for line in new_lines:
             fout.write(line)
 
-
     agraph = pgv.AGraph(file_path, strict=False)
 
     G = Graph()
@@ -343,7 +342,8 @@ def create_pretty_graph(G):
     return G
 
 
-parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('-f', '--file', help='file name')
 parser.add_argument('-cf', '--context-filter', choices=[
                     'path', 'file', 'func', 'all', 'none'], default='all', help='show part of the calling context')
@@ -374,7 +374,8 @@ if float(args.prune_node) > 0.0 or float(args.prune_edge) > 0.0:
   if args.verbose:
     print('Prune graph: {} nodes and {} edges...'.format(
         len(G.nodes()), len(G.edges())))
-  G = prune_graph(G, float(args.prune_node), float(args.prune_edge), args.keep_redundancy)
+  G = prune_graph(G, float(args.prune_node), float(
+      args.prune_edge), args.keep_redundancy)
 
 if args.verbose:
   print('Refine graph...')

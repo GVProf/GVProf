@@ -21,7 +21,7 @@ class Test(object):
                                                                        'vp_opt1', 'vp_opt2', 'vp_opt3'], options=['../data/graph1MW_6.txt'])
     cases['backprop'] = Case(path='samples/backprop', command='./backprop',
                              versions=['vp_opt', 'vp_opt1', 'vp_opt2'], options=['65536'])
-    
+
     def __init__(self, name, arch):
         self._name = name
         self._arch = arch

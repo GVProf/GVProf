@@ -105,4 +105,5 @@ class RedundancyTest(Test):
             redundancy_compare(run.spatial_read_files, run.spatial_read_reds)
             redundancy_compare(run.spatial_write_files, run.spatial_write_reds)
             redundancy_compare(run.temporal_read_files, run.temporal_read_reds)
-            redundancy_compare(run.temporal_write_files, run.temporal_write_reds)
+            redundancy_compare(run.temporal_write_files,
+                               run.temporal_write_reds)
