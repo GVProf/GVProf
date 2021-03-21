@@ -5,73 +5,55 @@ import sys
 
 import pygraphviz as pgv
 
-TestCase = namedtuple(
-    'TestCase', ['path', 'command', 'options', 'files', 'nodes', 'edges'])
+from test_cases import Test
+from utils import pipe_read
 
 
-def setup():
-    test_cases = []
-    # unit case
-    test_cases.append(TestCase(path='samples/op_graph_simple',
-                               command='./main',
-                               options=[],
-                               files=['data_flow.dot'],
-                               nodes=[17],
-                               edges=[20]))
+class DataFlowTest(Test):
+    Config = namedtuple('Config', ['files', 'nodes', 'edges'])
 
-    # real cases
-    test_cases.append(TestCase(path='samples/bfs',
-                               command='./bfs',
-                               options=['../data/graph1MW_6.txt'],
-                               files=['data_flow.dot'],
-                               nodes=[23],
-                               edges=[41]))
+    def __init__(self, arch):
+        super().__init__('DataFlowTest', arch)
 
-    return test_cases
+    def setup(self, choices):
+        for choice in choices:
+            if choice == 'op_graph_simple':
+                self._configs[choice] = DataFlowTest.Config(files=['data_flow.dot'],
+                                                            nodes=[17],
+                                                            edges=[20])
+            elif choice == 'bfs':
+                self._configs[choice] = DataFlowTest.Config(files=['data_flow.dot'],
+                                                            nodes=[23],
+                                                            edges=[41])
 
+    def _run_impl(self, case_name):
+        if case_name not in self._configs:
+            return
 
-def pipe_read(command):
-    process = subprocess.Popen(command,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    return stdout
-
-
-def cleanup():
-    pipe_read(['make', 'clean'])
-    pipe_read(['make'])
-
-
-def test(test_cases, bench):
-    for test_case in test_cases:
-        if bench is not None and bench != test_case.path:
-            continue
-
-        os.chdir(test_case.path)
-        cleanup()
+        command = Test.cases[case_name].command
+        options = Test.cases[case_name].options
+        path = Test.cases[case_name].path
 
         pipe_read(['gvprof', '-cfg', '-e', 'data_flow',
-                   test_case.command] + test_case.options)
+                   command] + options)
+
+        files = self._configs[case_name].files
+        nodes = self._configs[case_name].nodes
+        edges = self._configs[case_name].edges
 
         # Just count the number of nodes and edges,
         # redundancy and overwrite is difficult for autotest
-        for i, f in enumerate(test_case.files):
+        for i, f in enumerate(files):
             f = 'gvprof-measurements/data_flow/' + f
             agraph = pgv.AGraph(f, strict=False)
-            if len(agraph.nodes()) != test_case.nodes[i]:
-                sys.exit('Error {} nodes (true: {} vs test: {})'.format(
-                    test_case.path, test_case.nodes[i], len(agraph.nodes())))
-            if len(agraph.edges()) != test_case.edges[i]:
-                sys.exit('Error {} edges (true: {} vs test: {})'.format(
-                    test_case.path, test_case.edges[i], len(agraph.edges())))
-            print('Pass ' + test_case.path)
-
-        os.chdir('../..')
-
-
-bench = None
-if len(sys.argv) > 1:
-    bench = str(sys.argv[1])
-
-test(setup(), bench)
+            correct = True
+            if len(agraph.nodes()) != nodes[i]:
+                print('Error {} nodes (true: {} vs test: {})'.format(
+                    path, nodes[i], len(agraph.nodes())))
+                correct = False
+            if len(agraph.edges()) != edges[i]:
+                print('Error {} edges (true: {} vs test: {})'.format(
+                    path, edges[i], len(agraph.edges())))
+                correct = False
+            if correct is True:
+                print('Pass ' + path)
