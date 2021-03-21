@@ -1,9 +1,9 @@
 import argparse
 
-from data_flow_test import DataFlowTest
-from redundancy_test import RedundancyTest
-from value_pattern_test import ValuePatternTest
-from instruction_test import InstructionTest
+from tests.data_flow_test import DataFlowTest
+from tests.redundancy_test import RedundancyTest
+from tests.value_pattern_test import ValuePatternTest
+from tests.instruction_test import InstructionTest
 from test_cases import Test
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
