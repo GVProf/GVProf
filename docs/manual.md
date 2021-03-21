@@ -8,9 +8,7 @@ For GPU binaries, we recommend using `-O3 -lineinfo`.
 
 For CPU binaries, we recommend using `-O3 -g`.
 
-## Profile applications
-
-### gvprof script
+## Profiling with gvprof script
 
 The `gvprof` script includes basic profiling functions. For detailed profiling control, please refer to the next section.
 
@@ -20,7 +18,7 @@ gvprof -h
 gvprof -e <redundancy/data_flow/value_pattern> <app-name>
 ```
 
-### Step-by-step profiling
+## Step-by-step profiling
 
 We invoke `hpcrun` to profile an application twice using the same input.
 In the first pass, we dump the cubins loaded at runtime and profile each kernel's running time.
