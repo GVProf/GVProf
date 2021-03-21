@@ -1,6 +1,6 @@
 # Install
 
-## Install spack
+## spack
 
 ```bash
 git clone https://github.com/spack/spack.git
@@ -8,7 +8,7 @@ export SPACK_ROOT=/path/to/spack
 source ${SPACK_ROOT}/share/spack/setup-env.sh
 ```
 
-## Install gpu-patch
+## gpu-patch
 
 If you install cuda toolkit in somewhere else, you need to change the value of `SANITIZER_PATH`.
 
@@ -18,14 +18,14 @@ cd GVProf
 make PREFIX=/path/to/gpu-patch/installation SANITIZER_PATH=/usr/local/cuda/compute-sanitizer/ install
 ```
 
-## Install dependencies
+## Dependencies
 
 ```bash
 spack spec hpctoolkit
 spack install --only dependencies hpctoolkit ^dyninst@master
 ```
 
-## Install redshow
+## Redshow
 
 ```bash
 cd redshow
@@ -33,9 +33,7 @@ cd redshow
 make install -j8 PREFIX=/path/to/redshow/installation BOOST_DIR=/path/to/boost/installation GPU_PATH_DIR=/path/to/gpu-patch/installation
 ```
 
-## Install hpctoolkit
-
-### hpctoolkit
+## hpctoolkit
 
 ```bash
 cd /path/to/hpctoolkit
@@ -46,24 +44,19 @@ mkdir build && cd build
 make install -j8
 ```
 
-### hpcviewer
+## hpcviewer
+
+hpcviewer installation is optional.
 
 http://hpctoolkit.org/download/hpcviewer/
 
-### Add to environment
+## Add to environment
 
 Add following lines into your `.bashrc` file and source it.
 
 ```bash
-export HPCTOOLKIT=/path/to/hpctoolkit
-export PATH=$HPCTOOLKIT/bin/:$PATH
-```
-
-## Use gvprof script
-
-```bash
-./bin/gvprof
-export PATH=`pwd`/bin/gvprof
+export PATH=/path/to/hpctoolkit/install/bin/:$PATH
+export PATH=/path/to/GVProf/install/bin/:$PATH
 ```
 
 ## Test
