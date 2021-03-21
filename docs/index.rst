@@ -7,7 +7,7 @@ GVProf: a value profiler for GPUs
 ==================================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: GVProf basics
 
    introduction
@@ -16,7 +16,7 @@ GVProf: a value profiler for GPUs
    faq
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: GVProf development
 
    workflow
@@ -24,14 +24,14 @@ GVProf: a value profiler for GPUs
    roadmap
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: GVProf samples
 
    unit_tests
    rodinia
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Components
 
    hpctoolkit

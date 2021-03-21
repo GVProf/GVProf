@@ -1,5 +1,4 @@
-Manual
-==================================
+# Manual
 
 ## Add debug flags to Makefile
 
