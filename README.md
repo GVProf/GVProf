@@ -1,6 +1,7 @@
 # GVProf
 
 [![DOI](https://zenodo.org/badge/194196140.svg)](https://zenodo.org/badge/latestdoi/194196140)
+[![CodeFactor](https://www.codefactor.io/repository/github/jokeren/gvprof/badge/develop)](https://www.codefactor.io/repository/github/jokeren/gvprof/overview/develop)
 
 GVProf is a value profiler for NVIDIA GPUs to explore value-related inefficiencies in GPU-accelerated applications.
 
@@ -17,8 +18,8 @@ make
 ## Documentation
 
 - [Installation Guide](https://github.com/Jokeren/GVProf/blob/master/INSTALL.md)
-- [User's Guide](https://github.com/Jokeren/GVProf/blob/master/MANUAL.md)
-- [Developer's Guide]
+- [User's Guide](https://github.com/Jokeren/GVProf/blob/master/docs/MANUAL.md)
+- [Developer's Guide](https://github.com/Jokeren/GVProf/blob/master/docs/DEVELOP.md)
 
 ## Papers
 
