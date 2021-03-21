@@ -3,18 +3,48 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to GVProf's documentation!
+GVProf: a value profiler for GPUs
 ==================================
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: GVProf basics
 
+   introduction
+   getting_started
+   manual
+   faq
 
+.. toctree::
+   :maxdepth: 2
+   :caption: GVProf development
+
+   workflow
+   example
+   roadmap
+
+.. toctree::
+   :maxdepth: 2
+   :caption: GVProf samples
+
+   unit_tests
+   rodinia
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Components
+
+   hpctoolkit
+   redshow
+   gviewer
+
+.. toctree::
+   :caption: References
+
+   zreferences
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
