@@ -1,3 +1,6 @@
+Manual
+==================================
+
 ## Add debug flags to Makefile
 
 GVProf relies on debug information in binaries to attribute fine-grained value redundancy metrics on individual lines, loops, and functions. 
