@@ -118,7 +118,7 @@ class InstructionTest(Test):
                      'FUNC: 11, PC: 0x2b0, ACCESS_KIND: INTEGER,v:32,u:32']
                 })
 
-    def _run_impl(self, case_name):
+    def _run_impl(self, case_name, version):
         command = Test.cases[case_name].command
         options = Test.cases[case_name].options
         path = Test.cases[case_name].path

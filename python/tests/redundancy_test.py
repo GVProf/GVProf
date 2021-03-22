@@ -69,7 +69,7 @@ class RedundancyTest(Test):
                         sampling=50,
                         tolerate=0.05)]
 
-    def _run_impl(self, case_name):
+    def _run_impl(self, case_name, version):
         runs = self._configs[case_name]
         if not isinstance(runs, list):
             runs = [runs]

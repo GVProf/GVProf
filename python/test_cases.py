@@ -17,14 +17,15 @@ class Test(object):
         path='samples/op_pattern_simple', versions=[], command='./main', options=[])
 
     # sample test cases
-    cases['bfs'] = Case(path='samples/bfs', command='./bfs', versions=['vp_opt',
-                                                                       'vp_opt1', 'vp_opt2', 'vp_opt3'], options=['../data/graph1MW_6.txt'])
+    cases['bfs'] = Case(path='samples/bfs', command='./bfs', versions=[
+        'vp-opt1', 'vp-opt2', 'vp-opt3', 'vp-opt'], options=['../data/graph1MW_6.txt'])
     cases['backprop'] = Case(path='samples/backprop', command='./backprop',
-                             versions=['vp_opt', 'vp_opt1', 'vp_opt2'], options=['65536'])
+                             versions=['vp-opt1', 'vp-opt2', 'vp-opt'], options=['65536'])
 
-    def __init__(self, name, arch):
+    def __init__(self, name, arch, version=None):
         self._name = name
         self._arch = arch
+        self._version = version
         self._configs = dict()
 
     def name(self):
@@ -33,19 +34,32 @@ class Test(object):
     def setup(self, choices):
         pass
 
-    def _run_impl(self, case_name):
+    def _run_impl(self, case_name, version):
         pass
 
-    def run(self):
+    def run(self, iterations=1):
         cwd = os.getcwd()
+            
+        for _ in range(iterations):
+            for case_name, case in Test.cases.items():
+                if case_name not in self._configs:
+                    continue
 
-        for case_name, case in Test.cases.items():
-            if case_name not in self._configs:
-                continue
+                os.chdir(case.path)
+                cleanup(self._arch)
 
-            os.chdir(case.path)
-            cleanup(self._arch)
+                self._run_impl(case_name, None)
 
-            self._run_impl(case_name)
+                os.chdir(cwd)
 
-            os.chdir(cwd)
+                if self._version is None:
+                    continue
+                
+                for version in case.versions:
+                    if version == self._version or self._version == 'all':
+                        os.chdir(case.path + '-' + version)
+                        cleanup(self._arch)
+
+                        self._run_impl(case_name, version)
+
+                        os.chdir(cwd)

@@ -58,7 +58,7 @@ class ValuePatternTest(Test):
                                       'Single Value']]
                 )
 
-    def _run_impl(self, case_name):
+    def _run_impl(self, case_name, version):
         def check(op_counts, kernel_patterns, buf: str):
             lines = buf.splitlines()
             order = -1

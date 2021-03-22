@@ -26,7 +26,7 @@ class DataFlowTest(Test):
                                                             nodes=[23],
                                                             edges=[41])
 
-    def _run_impl(self, case_name):
+    def _run_impl(self, case_name, version):
         if case_name not in self._configs:
             return
 
