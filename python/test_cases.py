@@ -18,7 +18,7 @@ class Test(object):
 
     # sample test cases
     cases['bfs'] = Case(path='samples/bfs', command='./bfs', versions=[
-        'vp-opt1', 'vp-opt2', 'vp-opt3', 'vp-opt'], options=['../data/graph1MW_6.txt'])
+        'vp-opt1', 'vp-opt2', 'vp-opt'], options=['../data/graph1MW_6.txt'])
     cases['backprop'] = Case(path='samples/backprop', command='./backprop',
                              versions=['vp-opt1', 'vp-opt2', 'vp-opt'], options=['65536'])
 

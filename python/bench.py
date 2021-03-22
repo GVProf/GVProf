@@ -16,7 +16,10 @@ class Benchmark(Test):
     def setup(self, choices):
         for choice in choices:
             if choice == 'backprop':
-                self._configs[choice] = Benchmark.Config(kernels=['bpnn_adjust_weights_cuda'])
+                self._configs[choice] = Benchmark.Config(
+                    kernels=['bpnn_adjust_weights_cuda'])
+            elif choice == 'bfs':
+                self._configs[choice] = Benchmark.Config(kernels=['Kernel'])
 
     def _run_impl(self, case_name, version):
         command = Test.cases[case_name].command
@@ -29,12 +32,16 @@ class Benchmark(Test):
 
         print('{}/{}: {}s'.format(case_name, version, elapse))
 
-        kernel_times, cuda_api_time = nsys_profile(
+        kernel_times, gpu_kernel_time, gpu_mem_time = nsys_profile(
             [command] + options, self._configs[case_name].kernels)
         for kernel, kernel_time in kernel_times.items():
             print('{}/{}/{}: {}s'.format(case_name,
-                    version, kernel, kernel_time / (1e9)))
-        print('{}/{}/cuda_api: {}s'.format(case_name, version, cuda_api_time / (1e9)))
+                                         version, kernel, kernel_time / (1e9)))
+        print('{}/{}/gpu_kernel_time: {}s'.format(case_name,
+              version, gpu_kernel_time / (1e9)))
+        print('{}/{}/gpu_mem_time: {}s'.format(case_name,
+              version, gpu_mem_time / (1e9)))
+
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)

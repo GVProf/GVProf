@@ -1,16 +1,16 @@
 # Manual
 
-## Add debug flags to Makefile
+## Compile with Line Information
 
-GVProf relies on debug information in binaries to attribute fine-grained value redundancy metrics on individual lines, loops, and functions. 
+GVProf relies on debug information in binaries to attribute fine-grained value metrics on individual lines, loops, and functions. 
 
 For GPU binaries, we recommend using `-O3 -lineinfo`.
 
 For CPU binaries, we recommend using `-O3 -g`.
 
-## Profiling with gvprof script
+## Profile using gvprof script
 
-The `gvprof` script includes basic profiling functions. For detailed profiling control, please refer to the next section.
+The `gvprof` automates a series of profiling and analysis processes, but supports only basic profiling features. For detailed profiling control, please refer to the next section.
 
 ```
 gvprof -h
@@ -18,8 +18,9 @@ gvprof -h
 gvprof -e <redundancy/data_flow/value_pattern> <app-name>
 ```
 
-## Step-by-step profiling
+## Profile using hpctoolkit
 
+Using hpctoolkit to profile applications enables fine-grained control knobs, selective analysis of GPU/CPU binaries, and compatibilities with various launchers (e.g., jsrun).
 We invoke `hpcrun` to profile an application twice using the same input.
 In the first pass, we dump the cubins loaded at runtime and profile each kernel's running time.
 Then we invoke `hpcstruct` to analyze program structure and instruction dependency.
@@ -28,12 +29,18 @@ In the second pass, we instrument the cubins and invoke `redshow` redundancy ana
 - First pass
    
       hpcrun -e gpu=nvidia <app-name>
+      hpcstruct <app-name>
       hpcstruct --gpucfg yes hpctoolkit-<app-name>-measurements
+      # One can use hpcstruct on the focus GPU binaries only 
+      hpcstruct --gpucfg yes <binary-name>
    
 - Second pass
 
       hpcrun -e gpu=nvidia,<mode> -ck <option1> -ck <option2> ... <app-name>
-      hpcprof hpctoolkit-<app-name>-measurements    
+      hpcprof -S <app-name>.hpcstruct hpctoolkit-<app-name>-measurements    
+      # If only some binaries are analyzed using hpcstruct,
+      # one has to supply the corresponding binaries' structure files
+      hpcprof -S <app-name>.hpcstruct -S <binary-name>.hpcstruct hpctoolkit-<app-name>-measurements    
 
 - Options
 

@@ -22,34 +22,41 @@ def cleanup(arch):
 
 def nsys_profile(command, kernels):
     pipe_read(['nsys', 'profile', '-f', 'true', '-o', 'tmp'] + command)
-    pipe_read(['nsys', 'stats', '--report', 'gpukernsum', '--report', 'cudaapisum',
+    pipe_read(['nsys', 'stats', '--report', 'gpukernsum', '--report', 'gpumemtimesum',
                '--format', 'csv', '-o', 'tmp', '--force-overwrite', './tmp.qdrep'])
 
     kernel_times = dict()
 
+    gpu_kernel_time = 0.0
+
     with open('tmp_gpukernsum.csv', newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
 
+        first_row = True
         for row in spamreader:
+            if first_row is True:
+                first_row = False
+                continue
+
             time = row[1]
             kernel_args_name = row[6].replace('"', '')
+            gpu_kernel_time += float(time)
 
             for kernel_name in kernels:
-                if kernel_args_name.startswith(kernel_name) is True:
+                if kernel_args_name.startswith(kernel_name + '(') is True:
                     kernel_times[kernel_name] = float(time)
                     break
 
-    gpu_api_time = 0.0
+    gpu_mem_time = 0.0
 
-    with open('tmp_cudaapisum.csv', newline='') as csvfile:
+    with open('tmp_gpumemtimesum.csv', newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
 
         first_row = True
-
         for row in spamreader:
             if first_row is True:
                 first_row = False
             else:
-                gpu_api_time += float(row[1])
+                gpu_mem_time += float(row[1])
 
-    return kernel_times, gpu_api_time
+    return kernel_times, gpu_kernel_time, gpu_mem_time
