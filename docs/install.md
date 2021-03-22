@@ -1,6 +1,6 @@
 # Install
 
-The documentation includes detailed instructions for every package required by gvprof. One can use `./bin/install.sh` to install all these packages at once.
+The documentation includes detailed instructions for every package required by gvprof. One can use `./bin/install` to install all these packages at once.
 
 Before you install, make sure all the CUDA related paths (e.g., `LD_LIBRARY_PATH`) are setup.
 
@@ -55,7 +55,7 @@ make install -j8
 
 - hpcviewer (optional)
 
-http://hpctoolkit.org/download/hpcviewer/
+[http://hpctoolkit.org/download/hpcviewer/](http://hpctoolkit.org/download/hpcviewer/)
 
 ## Setup and Test
 

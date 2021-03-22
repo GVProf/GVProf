@@ -3,12 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-GVProf: a value profiler for GPUs
+GVProf: A Value Profiler for GPUs
 ==================================
 
 .. toctree::
    :maxdepth: 1
-   :caption: GVProf basics
+   :caption: GVProf Basics
 
    introduction
    install
@@ -17,7 +17,7 @@ GVProf: a value profiler for GPUs
 
 .. toctree::
    :maxdepth: 1
-   :caption: GVProf development
+   :caption: GVProf Development
 
    workflow
    example
@@ -25,7 +25,7 @@ GVProf: a value profiler for GPUs
 
 .. toctree::
    :maxdepth: 1
-   :caption: GVProf samples
+   :caption: GVProf Samples
 
    unit_tests
    rodinia

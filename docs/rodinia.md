@@ -18,4 +18,4 @@
 
 - vp-opt2
 
-*value_pattern*: `bfs.cu: 107-109`. Accesses to these showing a dense value pattern where zero is read most of the time. We can replace the memory copies of all zeros to from CPU to GPU by memset that is way much faster to reduce memory copy time.
+*value_pattern*: `bfs.cu: 107-109`. Accesses to these arrays showing a dense value pattern where zero is read most of the time. We can replace the memory copies of all zeros to from CPU to GPU by memset that is way much faster to reduce memory copy time.
