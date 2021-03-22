@@ -1,4 +1,4 @@
-# rodinia GPU benchmark
+# Rodinia GPU Benchmark
 
 ## backprop
 

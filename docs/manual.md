@@ -57,7 +57,7 @@ In the second pass, we instrument the cubins and invoke `redshow` redundancy ana
       HPCRUN_SANITIZER_DATA_FLOW_HASH=<if SHA256 hash is calculated for every operation, default: 0>
       HPCRUN_SANITIZER_GPU_ANALYSIS_BLOCKS=<number of gpu blocks dedicated for analysis, default: 0>
 
-## Interpret profile data
+## Interpret Profile Data
 
 - Calling context view (does not contain GPU calling context currently)
 
