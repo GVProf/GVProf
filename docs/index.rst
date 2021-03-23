@@ -38,7 +38,7 @@ GVProf: A Value Profiler for GPUs
    redshow
    gviewer
 
-Indices and tables
+Indices and Tables
 ==================
 
 * :ref:`genindex`

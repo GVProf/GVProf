@@ -21,6 +21,8 @@ class Test(object):
         'vp-opt1', 'vp-opt2', 'vp-opt'], options=['../data/graph1MW_6.txt'])
     cases['backprop'] = Case(path='samples/backprop', command='./backprop',
                              versions=['vp-opt1', 'vp-opt2', 'vp-opt'], options=['65536'])
+    cases['cfd'] = Case(path='samples/cfd', command='./euler3d', versions=['vp-opt1',
+                        'vp-opt2', 'vp-opt'], options=['../data/fvcorr.domn.097K'])
 
     def __init__(self, name, arch, version=None):
         self._name = name

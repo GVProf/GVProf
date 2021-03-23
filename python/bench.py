@@ -17,9 +17,13 @@ class Benchmark(Test):
         for choice in choices:
             if choice == 'backprop':
                 self._configs[choice] = Benchmark.Config(
-                    kernels=['bpnn_adjust_weights_cuda'])
+                    kernels=[('bpnn_adjust_weights_cuda', False)])
             elif choice == 'bfs':
-                self._configs[choice] = Benchmark.Config(kernels=['Kernel'])
+                self._configs[choice] = Benchmark.Config(kernels=[('Kernel', False)])
+            elif choice == 'cfd':
+                self._configs[choice] = Benchmark.Config(kernels=[('cuda_compute_flux', True),
+                                                                  ('cuda_time_step', True),
+                                                                  ('cuda_compute_step_factor', True)])
 
     def _run_impl(self, case_name, version):
         command = Test.cases[case_name].command

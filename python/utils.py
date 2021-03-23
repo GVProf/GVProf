@@ -39,11 +39,15 @@ def nsys_profile(command, kernels):
                 continue
 
             time = row[1]
-            kernel_args_name = row[6].replace('"', '')
+            kernel_args_name = row[6].replace('"', '').replace('void ', '')
             gpu_kernel_time += float(time)
 
-            for kernel_name in kernels:
-                if kernel_args_name.startswith(kernel_name + '(') is True:
+            for kernel_name, template in kernels:
+                if template is True:
+                    match_kernel_name = kernel_name
+                else:
+                    match_kernel_name = kernel_name + '('
+                if kernel_args_name.startswith(match_kernel_name) is True:
                     kernel_times[kernel_name] = float(time)
                     break
 
