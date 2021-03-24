@@ -8,6 +8,7 @@ from utils import pipe_read, nsys_profile
 
 
 class Benchmark(Test):
+    # (kernel_name, is_template)
     Config = namedtuple('Config', ['kernels'])
 
     def __init__(self, arch, version):
@@ -19,11 +20,15 @@ class Benchmark(Test):
                 self._configs[choice] = Benchmark.Config(
                     kernels=[('bpnn_adjust_weights_cuda', False)])
             elif choice == 'bfs':
-                self._configs[choice] = Benchmark.Config(kernels=[('Kernel', False)])
+                self._configs[choice] = Benchmark.Config(
+                    kernels=[('Kernel', False)])
             elif choice == 'cfd':
                 self._configs[choice] = Benchmark.Config(kernels=[('cuda_compute_flux', True),
                                                                   ('cuda_time_step', True),
                                                                   ('cuda_compute_step_factor', True)])
+            elif choice == 'hotspot':
+                self._configs[choice] = Benchmark.Config(
+                    kernels=[('calculate_temp', False)])
 
     def _run_impl(self, case_name, version):
         command = Test.cases[case_name].command

@@ -23,6 +23,8 @@ class Test(object):
                              versions=['vp-opt1', 'vp-opt2', 'vp-opt'], options=['65536'])
     cases['cfd'] = Case(path='samples/cfd', command='./euler3d', versions=['vp-opt1',
                         'vp-opt2', 'vp-opt'], options=['../data/fvcorr.domn.097K'])
+    cases['hotspot'] = Case(path='samples/hotspot', command='./hotspot', versions=['vp-opt'],
+                            options=['512', '2', '2', '../data/temp_512', '../data/power_512', 'output.out'])
 
     def __init__(self, name, arch, version=None):
         self._name = name

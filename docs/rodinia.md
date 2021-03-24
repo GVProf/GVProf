@@ -29,3 +29,9 @@
 - vp-opt2
 
 *data_flow*: `euler3d.cu: 570`. The *old_variables* array is originally initialized at *Line 551* with the same values are *variables* but copied again at *Line 570*. We can safely eliminate the second copy which is redundant in the first iteration.
+
+## hotspot
+
+- vp-opt
+
+*value_pattern*: `hotspot.cu: 164`. The *temp_src* array contains many very close floating point numbers. Using the approximate mode, gvprof determines all this values in this array are approximately the same under the certain approximation level. Therefore, we can read just some neighbor points on *Line 195* and still get similar final results.
