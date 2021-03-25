@@ -47,3 +47,9 @@
 - vp-opt: *value_pattern* - *dense values*
 
 `histogram.cu: 52`. GVProf reports dense values for the histo array in both the write and read modes. Because the most frequently updated value is zero, we can conditionally perform atomicAdd to reduce atomic operations.
+
+## lavalMD
+
+- vp-opt: *value_pattern* - *type overuse*
+
+`kernel_gpu_cuda.cu: 84`. The *rA* array contains only few distinct numbers. By checking its initialization on the CPU side, we note that there are only ten fixed values within 0.1 to 1.0. We can store these values using `uint_8` instead of `double`, saving *8x* space. These values are then decoded on the GPU side. In this way, we trade in compute time for memory copy time. 
