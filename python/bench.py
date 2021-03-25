@@ -29,6 +29,12 @@ class Benchmark(Test):
             elif choice == 'hotspot':
                 self._configs[choice] = Benchmark.Config(
                     kernels=[('calculate_temp', False)])
+            elif choice == 'hotspot3D':
+                self._configs[choice] = Benchmark.Config(
+                    kernels=[('hotspotOpt1', False)])
+            elif choice == 'huffman':
+                self._configs[choice] = Benchmark.Config(
+                    kernels=[('histo_kernel', False)])
 
     def _run_impl(self, case_name, version):
         command = Test.cases[case_name].command

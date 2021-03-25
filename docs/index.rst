@@ -10,7 +10,7 @@ GVProf: A Value Profiler for GPUs
    :maxdepth: 1
    :caption: GVProf Basics
 
-   introduction
+   preface
    install
    manual
    faq

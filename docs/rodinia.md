@@ -2,36 +2,48 @@
 
 ## backprop
 
-- vp-opt1
+- vp-opt1: *value_pattern* - *redundant zeros*
 
-*value_pattern*: `backprop_cuda_kernel.cu: 81`. The *delta* array has all elements zeros. We can either check the whole on the CPU side to invoke a special kernel or check each entry on the GPU side to execute a specific branch. 
+`backprop_cuda_kernel.cu: 81`. The *delta* array has all elements zeros. We can either check the whole on the CPU side to invoke a special kernel or check each entry on the GPU side to execute a specific branch. 
 
-- vp-opt2
+- vp-opt2: *data_flow* - *duplicate values*
 
-*data_flow*: `backprop_cuda.cu: 188`. *net->input_units* is copied to GPU at *Line 118* and copied back at *Line 188*. Meanwhile, the both the GPU data and the CPU data are not changed. As a result, the copy at *Line 188* can be eliminated safely.
+`backprop_cuda.cu: 188`. *net->input_units* is copied to GPU at *Line 118* and copied back at *Line 188*. Meanwhile, the both the GPU data and the CPU data are not changed. As a result, the copy at *Line 188* can be eliminated safely.
 
 ## bfs
 
-- vp-opt1
+- vp-opt1: *value_pattern* - *type overuse*
 
-*value_pattern*: `kernel.cu: 22`. The *g_cost*'s values are the range of [-127, 128). We can specify this array's type as `int_8` instead of `int` to reduce both kernel execution time and memory copy time.
+`kernel.cu: 22`. The *g_cost*'s values are the range of [-127, 128). We can specify this array's type as `int_8` instead of `int` to reduce both kernel execution time and memory copy time.
 
-- vp-opt2
+- vp-opt2: *value_pattern* - *dense values*
 
-*value_pattern*: `bfs.cu: 107-109`. Accesses to these arrays showing a dense value pattern where zero is read most of the time. We can replace the memory copies of all zeros to from CPU to GPU by memset that is way much faster to reduce memory copy time.
+`bfs.cu: 107-109`. Accesses to these arrays showing a dense value pattern where zero is read most of the time. We can replace the memory copies of all zeros to from CPU to GPU by memset that is way much faster to reduce memory copy time.
 
 ## cfd
 
-- vp-opt1
+- vp-opt1: *value_pattern* - *dense values*
 
-*value_pattern*: `euler3d.cu: 173`. The *cuda_initialize_variables* writes values in a dense pattern. We can *hash* the accessing index of this array to limit memory access in a certain range and increase cache locality. Since this array is changed in the second iteration, this optimization only applies to the first iteration.
+`euler3d.cu: 173`. The *cuda_initialize_variables* writes values in a dense pattern. We can *hash* the accessing index of this array to limit memory access in a certain range and increase cache locality. Since this array is changed in the second iteration, this optimization only applies to the first iteration.
 
-- vp-opt2
+- vp-opt2: *data_flow* - *redundant values*
 
-*data_flow*: `euler3d.cu: 570`. The *old_variables* array is originally initialized at *Line 551* with the same values are *variables* but copied again at *Line 570*. We can safely eliminate the second copy which is redundant in the first iteration.
+`euler3d.cu: 570`. The *old_variables* array is originally initialized at *Line 551* with the same values are *variables* but copied again at *Line 570*. We can safely eliminate the second copy which is redundant in the first iteration.
 
 ## hotspot
 
-- vp-opt
+- vp-opt: *value_pattern* - *approximate* - *single value*
 
-*value_pattern*: `hotspot.cu: 164`. The *temp_src* array contains many very close floating point numbers. Using the approximate mode, gvprof determines all this values in this array are approximately the same under the certain approximation level. Therefore, we can read just some neighbor points on *Line 195* and still get similar final results.
+`hotspot.cu: 164`. The *temp_src* array contains many very close floating point numbers. Using the approximate mode, gvprof determines all this values in this array are approximately the same under the certain approximation level. Therefore, we can read just some neighbor points on *Line 195* and still get similar final results.
+
+## hotspot3D
+
+- vp-opt: *value_pattern* - *approximate* - *single value*
+
+`opt1.cu: 29`. Like the *hotspot* example, the *tIn* array contains many very close floating point numbers. And gvprof determines all this values in this array are approximately the same under the certain approximation level. Incontrast to the *hotspot* example that selectively choose neighors, we use loop perforation to compute half of the loops and get similar result.
+
+## huffman
+
+- vp-opt: *value_pattern* - *dense values*
+
+`histogram.cu: 52`. GVProf reports dense values for the histo array in both the write and read modes. Because the most frequently updated value is zero, we can conditionally perform atomicAdd to reduce atomic operations.

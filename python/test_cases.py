@@ -25,6 +25,10 @@ class Test(object):
                         'vp-opt2', 'vp-opt'], options=['../data/fvcorr.domn.097K'])
     cases['hotspot'] = Case(path='samples/hotspot', command='./hotspot', versions=['vp-opt'],
                             options=['512', '2', '2', '../data/temp_512', '../data/power_512', 'output.out'])
+    cases['hotspot3D'] = Case(path='samples/hotspot3D', command='./3D', versions=['vp-opt'],
+                              options=['512', '8', '100', '../data/power_512x8', '../data/temp_512x8', 'output.out'])
+    cases['huffman'] = Case(path='samples/huffman', command='./pavle', versions=['vp-opt'],
+                            options=['../data/test1024_H2.206587175259.in'])
 
     def __init__(self, name, arch, version=None):
         self._name = name
