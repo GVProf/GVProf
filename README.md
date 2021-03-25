@@ -21,7 +21,7 @@ make
 
 - [Installation Guide](https://gvprof.readthedocs.io/en/latest/install.html)
 - [User's Guide](https://gvprof.readthedocs.io/en/latest/manual.html)
-- [Developer's Guide](https://gvprof.readthedocs.io/en/latest/develop.html)
+- [Developer's Guide](https://gvprof.readthedocs.io/en/latest/workflow.html)
 
 ## Papers
 

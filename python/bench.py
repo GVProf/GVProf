@@ -35,6 +35,9 @@ class Benchmark(Test):
             elif choice == 'huffman':
                 self._configs[choice] = Benchmark.Config(
                     kernels=[('histo_kernel', False)])
+            elif choice == 'lavaMD':
+                self._configs[choice] = Benchmark.Config(
+                    kernels=[('kernel_gpu_cuda', False)])
 
     def _run_impl(self, case_name, version):
         command = Test.cases[case_name].command

@@ -4,7 +4,7 @@ The documentation includes detailed instructions for every package required by g
 
 Before you install, make sure all the CUDA related paths (e.g., `LD_LIBRARY_PATH`) are setup.
 
-## gpu-patch
+## GPU Patch
 
 If you install cuda toolkit in somewhere else, you need to change the value of `SANITIZER_PATH`.
 
@@ -29,7 +29,7 @@ spack spec hpctoolkit
 spack install --only dependencies hpctoolkit ^dyninst@master
 ```
 
-## redshow
+## Redshow
 
 ```bash
 cd redshow
@@ -40,7 +40,7 @@ make install -j8 PREFIX=/path/to/redshow/installation BOOST_DIR=/path/to/boost/i
 # make OPENMP=1
 ```
 
-## hpctoolkit
+## HPCToolkit
 
 - profiling substrates
 

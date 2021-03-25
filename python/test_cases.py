@@ -29,6 +29,8 @@ class Test(object):
                               options=['512', '8', '100', '../data/power_512x8', '../data/temp_512x8', 'output.out'])
     cases['huffman'] = Case(path='samples/huffman', command='./pavle', versions=['vp-opt'],
                             options=['../data/test1024_H2.206587175259.in'])
+    cases['lavaMD'] = Case(path='samples/lavaMD', command='./lavaMD', versions=['vp-opt'],
+                           options=['-boxes1d', '30'])
 
     def __init__(self, name, arch, version=None):
         self._name = name
