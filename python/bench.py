@@ -38,6 +38,12 @@ class Benchmark(Test):
             elif choice == 'lavaMD':
                 self._configs[choice] = Benchmark.Config(
                     kernels=[('kernel_gpu_cuda', False)])
+            elif choice == 'pathfinder':
+                self._configs[choice] = Benchmark.Config(
+                    kernels=[('dynproc_kernel', False)])
+            elif choice == 'srad':
+                self._configs[choice] = Benchmark.Config(
+                    kernels=[('srad', False), ('srad2', False)])
 
     def _run_impl(self, case_name, version):
         command = Test.cases[case_name].command

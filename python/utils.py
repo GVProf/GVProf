@@ -9,6 +9,7 @@ def pipe_read(command, debug=False):
     stdout, stderr = process.communicate()
     if debug is True:
         print(stdout)
+        print(stderr)
     return stdout
 
 

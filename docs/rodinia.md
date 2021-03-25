@@ -14,7 +14,7 @@
 
 - vp-opt1: *value_pattern* - *type overuse*
 
-`kernel.cu: 22`. The *g_cost*'s values are the range of [-127, 128). We can specify this array's type as `int_8` instead of `int` to reduce both kernel execution time and memory copy time.
+`kernel.cu: 22`. The *g_cost*'s values are the range of `[-127, 128)`. We can specify this array's type as `int_8` instead of `int` to reduce both kernel execution time and memory copy time.
 
 - vp-opt2: *value_pattern* - *dense values*
 
@@ -53,3 +53,20 @@
 - vp-opt: *value_pattern* - *type overuse*
 
 `kernel_gpu_cuda.cu: 84`. The *rA* array contains only few distinct numbers. By checking its initialization on the CPU side, we note that there are only ten fixed values within 0.1 to 1.0. We can store these values using `uint_8` instead of `double`, saving *8x* space. These values are then decoded on the GPU side. In this way, we trade in compute time for memory copy time. 
+
+## pathfinder
+
+- vp-opt: *value_pattern* - *type overuse*
+
+`pathfinder.cu: 144`. The *gpuWall* array's values for this input will be within `[0, 255]`, thereby we can use `uint8_t` to replace `int` to reduce global memory traffic. 
+
+## srad
+
+- vp-opt1: *value_pattern* - *single value*
+
+`srad_kernel.cu: 79`. *d_c_loc* is always one for this output. We can memset all the values of *d_c* to 1 beforehand and to eliminate all stores with 1s
+
+- vp-opt2: *value_pattern* - *type overuse*
+
+`srad_kernel.cu: 5`. These location arrays *d_iN*, *d_iS*, *d_jE*, *d_jWh* have values with `2^16-1`. Thus we can use `uint16_t` to represent these arrays.
+

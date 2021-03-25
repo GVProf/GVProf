@@ -66,9 +66,10 @@ def format_graph(args):
         ret = ''
         if choice == 'none':
             return ret
-        # context.replace("\'\\\n")
-        frames = context.splitlines()
+        frames = context.split('#')
         for frame in frames[::-1]:
+            if frame == '':
+                continue
             line, func = frame.split('\t')
             if known is True and (line.find('Unknown') == 0 or line.find('<unknown file>') == 0):
                 continue
@@ -104,6 +105,7 @@ def format_graph(args):
         for line in new_lines:
             fout.write(line)
 
+
     agraph = pgv.AGraph(file_path, strict=False)
 
     G = Graph()
@@ -130,7 +132,7 @@ def prune_graph(G, node_threshold=0.0, edge_threshold=0.0, keep_redundancy=False
         nodes_with_edges[edge[1]] = True
 
     for k, v in nodes_with_edges.items():
-        if v is False:
+        if v == False:
             # XXX(Keren): pay attention to complexity O(NE)
             G.delete_node(k)
 
@@ -342,8 +344,7 @@ def create_pretty_graph(G):
     return G
 
 
-parser = argparse.ArgumentParser(
-    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('-f', '--file', help='file name')
 parser.add_argument('-cf', '--context-filter', choices=[
                     'path', 'file', 'func', 'all', 'none'], default='all', help='show part of the calling context')
@@ -374,8 +375,7 @@ if float(args.prune_node) > 0.0 or float(args.prune_edge) > 0.0:
   if args.verbose:
     print('Prune graph: {} nodes and {} edges...'.format(
         len(G.nodes()), len(G.edges())))
-  G = prune_graph(G, float(args.prune_node), float(
-      args.prune_edge), args.keep_redundancy)
+  G = prune_graph(G, float(args.prune_node), float(args.prune_edge), args.keep_redundancy)
 
 if args.verbose:
   print('Refine graph...')

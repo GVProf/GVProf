@@ -15,6 +15,8 @@ class Test(object):
         path='samples/op_graph_simple', versions=[], command='./main', options=[])
     cases['op_pattern_simple'] = Case(
         path='samples/op_pattern_simple', versions=[], command='./main', options=[])
+    cases['stress'] = Case(
+        path='samples/stress', versions=[], command='./stress', options=[])
 
     # sample test cases
     cases['bfs'] = Case(path='samples/bfs', command='./bfs', versions=[
@@ -31,6 +33,12 @@ class Test(object):
                             options=['../data/test1024_H2.206587175259.in'])
     cases['lavaMD'] = Case(path='samples/lavaMD', command='./lavaMD', versions=['vp-opt'],
                            options=['-boxes1d', '30'])
+    cases['particlefilter'] = Case(path='samples/particlefilter', command='./particlefilter_float', versions=['vp-opt'],
+                                   options=['-x', '128', '-y', '128', '-z', '10', '-np', '1000'])
+    cases['pathfinder'] = Case(path='samples/pathfinder', command='./pathfinder',
+                               versions=['vp-opt'], options=['100000', '100', '20'])
+    cases['srad'] = Case(path='samples/srad_v1', command='./srad',
+                         versions=['vp-opt1', 'vp-opt2', 'vp-opt'], options=['10', '0.5', '502', '458'])
 
     def __init__(self, name, arch, version=None):
         self._name = name
