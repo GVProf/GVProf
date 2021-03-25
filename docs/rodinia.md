@@ -48,7 +48,7 @@
 
 `histogram.cu: 52`. GVProf reports dense values for the histo array in both the write and read modes. Because the most frequently updated value is zero, we can conditionally perform atomicAdd to reduce atomic operations.
 
-## lavalMD
+## lavaMD
 
 - vp-opt: *value_pattern* - *type overuse*
 
