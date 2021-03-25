@@ -20,7 +20,6 @@ GVProf: A Value Profiler for GPUs
    :caption: GVProf Development
 
    workflow
-   example
    roadmap
 
 .. toctree::
