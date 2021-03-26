@@ -2,11 +2,11 @@
 
 ## Introduction
 
-BarraCUDA is a GPU-accelerated sequence mapping software. It's code and sample data are open source and available at (sourceforge)[http://seqbarracuda.sourceforge.net/]. BarraCUDA's (FAQ page)[http://seqbarracuda.sourceforge.net/faqs.html] provides useful instructions for installing and running benchmarks.
+BarraCUDA is a GPU-accelerated sequence mapping software. It's code and sample data are open source and available at [sourceforge](http://seqbarracuda.sourceforge.net/). BarraCUDA's [FAQ page](http://seqbarracuda.sourceforge.net/faqs.html) provides useful instructions for installing and running benchmarks.
 
-We studied BarraCUDA *0.7.107h*, using its `sample_data/Saccharomyces_cerevisiae.SGD1.01.50.dna_rm.toplevel.fa` input. 
+We studied BarraCUDA *0.7.107h*, using the `Saccharomyces_cerevisiae.SGD1.01.50.dna_rm.toplevel.fa` sample data.
 
-Since BarraCUDA's source code is not available on Github, we don't provide a copy in GVProf and only discuss implementation details in this document.
+Since BarraCUDA's latest source code is not available on Github, we don't provide a copy in GVProf and only discuss implementation details in this document.
 
 ## Profiling
 
