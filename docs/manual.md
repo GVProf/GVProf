@@ -10,7 +10,7 @@ For CPU binaries, we recommend using `-O3 -g`.
 
 ## Profile Using GVProf
 
-The `./bin/gvprof` script automates a series of profiling and analysis processes, but supports only basic profiling features. For detailed profiling control, please refer to the next section.
+The `gvprof` script automates a series of profiling and analysis processes, but supports only basic profiling features. For detailed profiling control, please refer to the next section.
 
 ```bash
 gvprof -h

@@ -39,6 +39,12 @@ GVProf's code is available on `Github <https://github.com/Jokeren/GVProf>`_.
 
    unit_tests
    rodinia
+   qmcpack
+   castro
+   deepwave
+   darknet
+   namd
+   barracuda
 
 Indices and Tables
 ==================
