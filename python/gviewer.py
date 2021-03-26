@@ -132,7 +132,7 @@ def prune_graph(G, node_threshold=0.0, edge_threshold=0.0, keep_redundancy=False
         nodes_with_edges[edge[1]] = True
 
     for k, v in nodes_with_edges.items():
-        if v == False:
+        if v is False:
             # XXX(Keren): pay attention to complexity O(NE)
             G.delete_node(k)
 

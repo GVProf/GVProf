@@ -1,7 +1,7 @@
 # GVProf
 
 [![DOI](https://zenodo.org/badge/194196140.svg)](https://zenodo.org/badge/latestdoi/194196140)
-[![CodeFactor](https://www.codefactor.io/repository/github/jokeren/gvprof/badge/develop)](https://www.codefactor.io/repository/github/jokeren/gvprof/overview/develop)
+[![CodeFactor](https://www.codefactor.io/repository/github/gvprof/gvprof/badge/develop)](https://www.codefactor.io/repository/github/gvprof/gvprof/overview/develop)
 [![Documentation Status](https://readthedocs.org/projects/gvprof/badge/?version=latest)](https://gvprof.readthedocs.io/en/latest/?badge=latest)
 
 
