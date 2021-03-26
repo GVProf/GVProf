@@ -39,6 +39,8 @@ class Test(object):
                                versions=['vp-opt'], options=['100000', '100', '20'])
     cases['srad'] = Case(path='samples/srad_v1', command='./srad',
                          versions=['vp-opt1', 'vp-opt2', 'vp-opt'], options=['10', '0.5', '502', '458'])
+    cases['streamcluster'] = Case(path='samples/streamcluster', command='./sc_gpu', versions=['vp-opt'],
+                                  options=['10', '20', '256', '65536', '65536', '1000', 'none', 'output.txt', '1'])
 
     def __init__(self, name, arch, version=None):
         self._name = name

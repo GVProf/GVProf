@@ -70,3 +70,8 @@
 
 `srad_kernel.cu: 5`. These location arrays *d_iN*, *d_iS*, *d_jE*, *d_jWh* have values with `2^16-1`. Thus we can use `uint16_t` to represent these arrays.
 
+## streamcluster
+
+- vp-opt: *data_flow* - *redundant values*
+
+`streamcluster_cuda.cu:221`. These arrays *center_table_d*, *switch_membership_d*, *p* are not changed in each iteration. Therefore, we can use flags on the CPU to detect if these arrays will be changed and only copy values if they are.

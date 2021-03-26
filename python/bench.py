@@ -44,6 +44,8 @@ class Benchmark(Test):
             elif choice == 'srad':
                 self._configs[choice] = Benchmark.Config(
                     kernels=[('srad', False), ('srad2', False)])
+            elif choice == 'streamcluster':
+                self._configs[choice] = Benchmark.Config(kernels=[])
 
     def _run_impl(self, case_name, version):
         command = Test.cases[case_name].command
