@@ -60,13 +60,14 @@ class Test(object):
     def run(self, iterations=1):
         cwd = os.getcwd()
             
-        for _ in range(iterations):
+        for i in range(iterations):
             for case_name, case in Test.cases.items():
                 if case_name not in self._configs:
                     continue
 
                 os.chdir(case.path)
-                cleanup(self._arch)
+                if i == 0:
+                    cleanup(self._arch)
 
                 self._run_impl(case_name, None)
 
@@ -78,7 +79,8 @@ class Test(object):
                 for version in case.versions:
                     if version == self._version or self._version == 'all':
                         os.chdir(case.path + '-' + version)
-                        cleanup(self._arch)
+                        if i == 0:
+                            cleanup(self._arch)
 
                         self._run_impl(case_name, version)
 

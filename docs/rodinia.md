@@ -4,7 +4,7 @@
 
 - vp-opt1: *value_pattern* - *redundant zeros*
 
-[`backprop_cuda_kernel.cu: 81`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/backprop/backprop_cuda_kernel.cu#L81). The *delta* array has all elements zeros. We can either check the whole on the CPU side to invoke a special kernel or check each entry on the GPU side to execute a specific branch. 
+[`backprop_cuda_kernel.cu: 81`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/backprop/backprop_cuda_kernel.cu#L81). The *delta* array has many elements zeros. We can check each entry on the GPU side to execute a specific branch. 
 
 - vp-opt2: *data_flow* - *duplicate values*
 
