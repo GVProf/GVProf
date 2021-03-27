@@ -8,6 +8,8 @@ For GPU binaries, we recommend using `-O3 -lineinfo`.
 
 For CPU binaries, we recommend using `-O3 -g`.
 
+For software compiled with CMake system, usually we can edit `CMAKE_C_FLAGS` and `CMAKE_CXX_FLAGS` to add line info flags. Additionally, CUDA line info can be added through `CMAKE_CUDA_FLAGS`.
+
 ## Profile Using GVProf
 
 The `gvprof` script automates a series of profiling and analysis processes, but supports only basic profiling features. For detailed profiling control, please refer to the next section.
@@ -96,15 +98,13 @@ gviewer -f <measurement-dir>/data_flow.dot.context -cf file -p
 ```
 The generated .svg can be visualized directly. To enable interactive control, we can rename the file to `demo.svg` and move it to `jquery.graphviz.svg`. After launch a server locally, we can visualize the graph, zoom in for important parts, and track each node's data flows.
 
-- Fine grain pattern view
+- Fine grain pattern views
 
 ```bash
+# value pattern
 less <measurement-dir>/value_pattern/value_pattern_t<cpu-thread-id>.csv
-```
-      
-- Statistic view
 
-```bash
+# redundancy
 less <measurement-dir>/redundancy/temporal_read_t<cpu-thread-id>.csv
 less <measurement-dir>/redundancy/temporal_write_t<cpu-thread-id>.csv
 less <measurement-dir>/redundancy/spatial_read_t<cpu-thread-id>.csv
