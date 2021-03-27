@@ -41,7 +41,7 @@ We plan release *v2.2* around Fall 2022, which will focus on enhancing the stabi
 
         Adopt yaml files to configure test cases
 
-## Pennding Issues
+## Pending Issues
 
 We haven't decided when to solve the following issues.
 
