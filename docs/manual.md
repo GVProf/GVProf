@@ -110,3 +110,7 @@ less <measurement-dir>/redundancy/temporal_write_t<cpu-thread-id>.csv
 less <measurement-dir>/redundancy/spatial_read_t<cpu-thread-id>.csv
 less <measurement-dir>/redundancy/spatial_write_t<cpu-thread-id>.csv
 ```
+
+## Example
+
+<work-in-progress>

@@ -2,6 +2,16 @@
 
 The documentation includes detailed instructions for every package required by gvprof. One can use `./bin/install` to install all these packages at once.
 
+The install script accepts three arguments in order:
+
+```bash
+./bin/install <install-prefix> <path/to/cuda> <path/to/compute-sanitizer
+# default values
+# <install-prefix>=`pwd`/gvprof
+# <path/to/cuda>=/usr/local/cuda
+# <path/to/compute-sanitizer>=<path/to/cuda>/compute-sanitizer
+```
+
 Before you install, make sure all the CUDA related paths (e.g., `LD_LIBRARY_PATH`) are setup.
 
 ## GPU Patch
