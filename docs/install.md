@@ -5,7 +5,7 @@ The documentation includes detailed instructions for every package required by g
 The install script accepts three arguments in order:
 
 ```bash
-./bin/install <install-prefix> <path/to/cuda> <path/to/compute-sanitizer
+./bin/install <install-prefix> <path/to/cuda> <path/to/compute-sanitizer>
 # default values
 # <install-prefix>=`pwd`/gvprof
 # <path/to/cuda>=/usr/local/cuda
