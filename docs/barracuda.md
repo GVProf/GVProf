@@ -6,13 +6,12 @@ BarraCUDA is a GPU-accelerated sequence mapping software. It's code and sample d
 
 We studied BarraCUDA *0.7.107h*, using the `Saccharomyces_cerevisiae.SGD1.01.50.dna_rm.toplevel.fa` sample data.
 
-Since BarraCUDA's latest source code is not available on Github, we don't provide a copy in GVProf and only discuss implementation details in this document.
-
 ## Profiling
 
 BarraCUDA is a relatively small scale application that can be profiled directly using the `gvprof` script.
 
 ```bash
+# prepare
 barracuda index sample_data/Saccharomyces_cerevisiae.SGD1.01.50.dna_rm.toplevel.fa
 
 # data_flow
