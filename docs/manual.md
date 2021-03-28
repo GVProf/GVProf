@@ -17,6 +17,7 @@ The `gvprof` script automates a series of profiling and analysis processes, but 
 ```bash
 gvprof -h
 # Currently we offer three modes
+# gvprof -v is your friend for debugging
 gvprof -e <redundancy/data_flow/value_pattern> <app-name>
 ```
 
