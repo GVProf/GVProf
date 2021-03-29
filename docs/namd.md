@@ -17,7 +17,12 @@ CXX_OPTS = -g -O3
 
 For data flow profiling, we use the normal gvprof script with the `-ck HPCRUN_SANITIZER_READ_TRACE_IGNORE=1` option.
 
-For value pattern profiling, we choose to monitor the most costly `nonbondedForceKernel` kernel of namd. Note that because this function involves many arrays with different value types, we need GPU control flow graph and backward slicing to derive the types of each array. For your reference, we use the command `gvprof -cfg -j 16 -e value_pattern -ck HPCRUN_SANITIZER_WHITELIST=./whitelist -ck HPCRUN_SANITIZER_KERNEL_SAMPLING_FREQUENCY=10`. The CFG analysis phase could take up to an hour consuming about **100GB** main memory.
+For value pattern profiling, we choose to monitor the most costly `nonbondedForceKernel` kernel of namd. Note that because this function involves many arrays with different value types, we need GPU control flow graph and backward slicing to derive the types of each array.
+For your reference, we use the command
+```
+gvprof -cfg -j 16 -e value_pattern -ck HPCRUN_SANITIZER_WHITELIST=./whitelist -ck HPCRUN_SANITIZER_KERNEL_SAMPLING_FREQUENCY=10
+```
+The CFG analysis phase could take up to an hour consuming about **100GB** main memory.
 
 **Caution: please use the full mangled name of `nonbondedForceKernel`**
 

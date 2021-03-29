@@ -22,7 +22,11 @@ For the data flow mode, one can use gvprof to profile darknet directly. `-ck HPC
 
 For the value pattern mode, we recommend using whitelist to specify the interesting kernels and turn on block sampling and kernel samples. In addition, if GPU control flow graphs are wanted, we don't recommend using `gvprof -cfg` directly because darknet uses cuBLAS and cuDNN, loading hundreds of large binaries at runtime. In fact, darkent's data type is almost uniform across all kernels so that one can gain insights even without `-cfg`.
 
-We profiled the fine grain patterns of darknet using `gvprof -e value_pattern@10 -ck HPCRUN_SANITIZER_WHITELIST=./whitelist -ck HPCRUN_SANITIZER_KERNEL_SAMPLING_FREQUENCY=20`. In the `whitelist` file, we specified the following three kernels:
+We profiled the fine grain patterns of darknet using
+```
+gvprof -e value_pattern@10 -ck HPCRUN_SANITIZER_WHITELIST=./whitelist -ck HPCRUN_SANITIZER_KERNEL_SAMPLING_FREQUENCY=20
+```
+In the `whitelist` file, we specified the following three kernels:
 
 ```
 _Z15add_bias_kernelPfS_iiii
