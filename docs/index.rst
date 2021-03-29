@@ -43,6 +43,7 @@ GVProf's code is available on `Github <https://github.com/Jokeren/GVProf>`_.
    castro
    deepwave
    darknet
+   pytorch
    namd
    barracuda
 
