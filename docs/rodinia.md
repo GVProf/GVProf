@@ -70,6 +70,10 @@
 
 [`srad_kernel.cu: 5`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/srad_v1/srad_kernel.cu#L5). These location arrays *d_iN*, *d_iS*, *d_jE*, *d_jWh* have values with `2^16-1`. Thus we can use `uint16_t` to represent these arrays.
 
+- vp-opt3: *value_pattern* - *structured*
+
+TODO(Yueming)
+
 ## streamcluster
 
 - vp-opt: *data_flow* - *redundant values*
