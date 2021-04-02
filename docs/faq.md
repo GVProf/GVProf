@@ -1,6 +1,6 @@
 # FAQ
 
-1. How do I profile a Python application?
+- How do I profile a Python application?
 
 Please first refer to the MANUAL page for step-by-step profiling using HPCToolkit.
 
@@ -15,10 +15,10 @@ For CPU binaries, the *python* binary does not necessialy contain all the progra
 When hpcprof begins analyze a binary, it will print out some message like below. In this case, we can kill hpcprof, remove the temporary database, and use `hpcstruct` to analyze `libtorch_python.so`.
 
 ```bash
-msg: Begin analyzing /path/to/python/lib/python3.8/site-packages/torch/lib/libtorch_python.so.
+msg: Begin analyzing : /path/to/python/lib/python3.8/site-packages/torch/lib/libtorch_python.so
 ```
 
-2. How do I accelerate data flow profiling?
+- How do I accelerate data flow profiling?
 
 The following three knobs are helpful for proiling applications with many kernels. With all the options turned on, the expected end-to-end of GVProf is approximately 20x, while the overhead could be 2000x without these knobs. 
 
@@ -36,4 +36,14 @@ When GPU analysis is used, one can adjust the number of records on the GPU side 
 HPCRUN_SANITIZER_GPU_PATCH_RECORD_NUM=<size of the buffer on GPU, default: 16 * 1024>
 ```
 
-4. How do I accelerate value pattern profiling?
+- How do I accelerate value pattern profiling?
+
+The following knobs are helpful for profiling the value pattern of specific kernels, focusing on just several instances.
+
+Besides, one can also apply `<pattern-name>@N` to use block sampling that profiles one GPU block randomly out of every *N* blocks.
+
+```bash
+HPCRUN_SANITIZER_KERNEL_SAMPLING_FREQUENCY=<kernel sampling frequency, default: 1>
+HPCRUN_SANITIZER_WHITELIST=<functions to be monitored during execution, default: 0>
+HPCRUN_SANITIZER_BLACKLIST=<functions not monitored during execution, default: 0>
+```
