@@ -53,6 +53,8 @@ Profiling a Python application takes extra steps than a normal application. We h
 
 ## Optimization
 
+We don't provide an automate performance testing suite for PyTorch in GVProf because recompile PyTorch for just small code changes still take long time and is a pain on low end servers. 
+
 - *data_flow* - *redundant values*
 
 Please refer to this [issue](https://github.com/pytorch/pytorch/issues/48539)
@@ -62,3 +64,5 @@ Please refer to this [issue](https://github.com/pytorch/pytorch/issues/48539)
 Please refer to these two: [issue1](https://github.com/pytorch/pytorch/issues/48889) and [issue2](https://github.com/pytorch/pytorch/issues/49663)
 
 - *value_pattern* - *structured values*
+
+In the pygcn model, we found structured value access pattern in the xxx kernel. We found that all its memory accesses can be ordered and ranked. This optimization is difficult to implement.

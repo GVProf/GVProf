@@ -20,16 +20,16 @@ Since the default configuration of this example takes relatively long time, we c
 
 For value pattern profiling, we monitor the most expensive propagate kernel using the following options.
 
-```
+```bash
 LD_LIBRARY_PATH=/path/to/python/install/lib/python<version>/site-packages/torch:$LD_LIBRARY_PATH hpcrun -e gpu=nvidia,value_pattern@10000 -ck HPCRUN_SANITIZER_WHITELIST=./whitelist -ck HPCRUN_SANITIZER_KERNEL_SAMPLING_FREQUENCY=100000 python ./Deepwave_SEAM_example1.py
 ```
 
 For data flow profiling, we turn on these knobs to accelerate the whole process.
 
-```
+```bash
 LD_LIBRARY_PATH=/path/to/python/install/lib/python<version>/site-packages/torch:$LD_LIBRARY_PATH hpcrun -e gpu=nvidia,data_flow -ck HPCRUN_SANITIZER_READ_TRACE_IGNORE=1 -ck HPCRUN_SANITIZER_DATA_FLOW_HASH=0 -ck HPCRUN_SANITIZER_GPU_ANALYSIS_BLOCKS=1 -ck HPCRUN_SANITIZER_GPU_PATCH_RECORD_NUM=131072 python ./Deepwave_SEAM_example1.py
 
-# this gives you extra speedup
+# this gives you additional speedup
 # export OMP_NUM_THREADS=16
 ```
 

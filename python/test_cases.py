@@ -43,6 +43,27 @@ class Test(object):
     cases['streamcluster'] = Case(path='samples/streamcluster', command='./sc_gpu', versions=['vp-opt'], options=[
                                   '10', '20', '256', '65536', '65536', '1000', 'none', 'output.txt', '1'], cleanup=True)
 
+    # application cases
+    cases['barracuda'] = Case(path='samples/barracuda', command='./barracuda', versions=['vp-opt'],
+                              options=['aln', 'sample_data/Saccharomyces_cerevisiae.SGD1.01.50.dna_rm.toplevel.fa',
+                              'sample_data/sample_reads.fastq', '>', 'quicktest.sai'], cleanup=False)
+
+    cases['castro'] = Case(path='samples/Castro/Exec/hydro_tests/Sedov', command='Castro2d.gnu.CUDA.ex', versions=['vp-opt'],
+                           options=['./inputs.2d.cyl_in_cartcoords'], cleanup=False)
+    
+    cases['darknet'] = Case(path='samples/darknet', command='./darknet', versions=['vp-opt'],
+                            options=['detector', 'test', './cfg/coco.data', './cfg/yolov4.cfg',
+                                     './yolov4.weights', 'data/dog.jpg', '-i', '0', '-thresh', '0.25'], cleanup=False)
+
+    cases['deepwave'] = Case(path='samples/deepwave', command='./Deepwave_SEAM_example1.py', versions=['vp-opt'],
+                             options=[], cleanup=False)
+
+    cases['namd'] = Case(path='samples/NAMD/Linux-x86_64-g++', command='./namd3',
+                         versions=['vp-opt'], options=['../alain'], cleanup=False)
+
+    cases['qmcpack'] = Case(path='samples/qmcpack/workspace/NiO/dmc-a4-e48-batched_driver-DU8',
+                            command='../../../build/bin/qmcpack', options=['./NiO-fcc-S1-dmc.xml'], cleanup=False)
+
     def __init__(self, name, arch, version=None):
         self._name = name
         self._arch = arch

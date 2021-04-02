@@ -43,6 +43,9 @@ hpcstruct --gpucfg no <binary-name>
 - Second pass
 
 ```bash
+# Before profiling, we remove all profile data dumped in the first pass
+rm -rf hpctoolkit-<app-name>-measurements/*.hpcrun
+
 hpcrun -e gpu=nvidia,<mode> -ck <option1> -ck <option2> ... <app-name>
 hpcprof -S <app-name>.hpcstruct hpctoolkit-<app-name>-measurements    
 # If only some binaries are analyzed using hpcstruct,
