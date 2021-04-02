@@ -9,14 +9,17 @@ We used PyTorch version `f5788898a928cb2489926c1a5418c94c598c361b`. We studied `
 Based on PyTorch's README, we adopted the following commands to compile PyTorch from source.
 
 ```bash
+spack install miniconda3
+
+conda install numpy ninja pyyaml mkl mkl-include setuptools cmake cffi typing_extensions future six requests dataclasses
+
+conda install -c pytorch magma-cuda110
+
 export CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}
 export USE_CUDA=1
 export REL_WITH_DEB_INFO=1
 export MAX_JOBS=16
 export USE_NINJA=OFF 
-export USE_FBGEMM=0
-export USE_CUDNN=0
-export BUILD_CAFFE2=0
 python setup.py install
 ```
 
@@ -56,12 +59,6 @@ Please refer to this [issue](https://github.com/pytorch/pytorch/issues/48539)
 
 - *data_flow* - *redundant values* - *value_pattern* - *redundant zeros*
 
-1. Please refer to this [issue](https://github.com/pytorch/pytorch/issues/48889)
-
-2. Please refer to this [issue](https://github.com/pytorch/pytorch/issues/49663)
+Please refer to these two: [issue1](https://github.com/pytorch/pytorch/issues/48889) and [issue2](https://github.com/pytorch/pytorch/issues/49663)
 
 - *value_pattern* - *structured values*
-
-
-
-

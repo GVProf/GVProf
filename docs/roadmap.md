@@ -4,7 +4,7 @@ This document describes incoming features and release plans for GVProf. Since GV
 
 ## Release v2.2
 
-We plan release *v2.2* around Fall 2022, which will focus on enhancing the stability and compatibility of GVProf. Also, a few new features, such as customized memory allocator support and more accessible function filters are planned to be integrated.
+We plan release *v2.2* around Fall 2021, which will focus on enhancing the stability and compatibility of GVProf. Also, a few new features, such as customized memory allocator support and more accessible function filters are planned to be integrated.
 
 
 - Features

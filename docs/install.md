@@ -37,6 +37,8 @@ source ${SPACK_ROOT}/share/spack/setup-env.sh
 ```bash
 spack spec hpctoolkit
 spack install --only dependencies hpctoolkit ^dyninst@master
+# XXX(Keren): Temporary workaround until new hpctoolkit is merged
+spack install libmonitor@master +dlopen +hpctoolkit
 ```
 
 ## Redshow
@@ -59,7 +61,7 @@ cd /path/to/hpctoolkit
 mkdir build && cd build
 # Tip: check spack libraries' root->spack find --path.  
 # For example: --with-spack=/home/username/spack/opt/spack/linux-ubuntu18.04-zen/gcc-7.4.0/
-../configure --prefix=/path/to/hpctoolkit/installation --with-cuda=/usr/local/cuda-11.0 --with-sanitizer=/path/to/sanitizer --with-gpu-patch=/path/to/gpu-patch/installation --with-redshow=/path/to/redshow/installation  --with-spack=/path/to/spack/libraries/root
+../configure --prefix=/path/to/hpctoolkit/installation --with-cuda=/usr/local/cuda-11.0 --with-sanitizer=/path/to/sanitizer --with-gpu-patch=/path/to/gpu-patch/installation --with-redshow=/path/to/redshow/installation --with-spack=/path/to/spack/libraries/root --with
 make install -j8
 ```
 
