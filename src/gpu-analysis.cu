@@ -295,7 +295,8 @@ interval_merge
   }
 
   // Second pass
-  if (items <= (tile_size >> 1) && items < buffer->head_index) {
+  // Fake shuffle
+  if (items < buffer->head_index) {
     cur_index = 0;
     items = 0;
     for (; cur_index + (tile_size / 2) <= buffer->head_index; cur_index += (tile_size / 2)) {
