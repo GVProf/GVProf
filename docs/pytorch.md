@@ -4,7 +4,7 @@
 
 [PyTorch](https://pytorch.org/) is a popular machine learning framework.
 
-We used PyTorch version `f5788898a928cb2489926c1a5418c94c598c361b`. We studied `resnet50`, `deepwave`, `pygcn`, and `bert` models. 
+We used PyTorch version `f5788898a928cb2489926c1a5418c94c598c361b`. We studied `resnet50`, `bert`, `deepwave` models. 
 
 Based on PyTorch's README, we adopted the following commands to compile PyTorch from source.
 
@@ -51,6 +51,12 @@ To ease checking the problematic kernel, we provide `4-indexing-unit.py` script 
 
 Profiling a Python application takes extra steps than a normal application. We have a general guide to profile application in the [FAQ](https://gvprof.readthedocs.io/en/latest/faq.html) page.
 
+An example profiling command is attached below for reference:
+
+```bash
+LD_LIBRARY_PATH=/path/to/python/install/lib/python<version>/site-packages/torch:$LD_LIBRARY_PATH hpcrun -e gpu=nvidia,data_flow -ck HPCRUN_SANITIZER_READ_TRACE_IGNORE=1 -ck HPCRUN_SANITIZER_DATA_FLOW_HASH=0 -ck HPCRUN_SANITIZER_GPU_ANALYSIS_BLOCKS=1 -ck HPCRUN_SANITIZER_GPU_PATCH_RECORD_NUM=131072 python ./<pytorch-script>.py
+```
+
 ## Optimization
 
 We don't provide an automate performance testing suite for PyTorch in GVProf because recompile PyTorch for just small code changes still take long time and is a pain on low end servers. 
@@ -62,7 +68,3 @@ Please refer to this [issue](https://github.com/pytorch/pytorch/issues/48539)
 - *data_flow* - *redundant values* - *value_pattern* - *redundant zeros*
 
 Please refer to these two: [issue1](https://github.com/pytorch/pytorch/issues/48889) and [issue2](https://github.com/pytorch/pytorch/issues/49663)
-
-- *value_pattern* - *structured values*
-
-In the pygcn model, we found structured value access pattern in the xxx kernel. We found that all its memory accesses can be ordered and ranked. This optimization is difficult to implement.
