@@ -68,7 +68,7 @@ def format_graph(args):
             return ret
         frames = context.split('#')
         for frame in frames[::-1]:
-            if frame == '':
+            if frame == '' or frame == '\n':
                 continue
             line, func = frame.split('\t')
             if known is True and (line.find('Unknown') == 0 or line.find('<unknown file>') == 0):
