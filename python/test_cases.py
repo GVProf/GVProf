@@ -62,7 +62,7 @@ class Test(object):
                          versions=['vp-opt'], options=['../alain'], cleanup=False)
 
     cases['qmcpack'] = Case(path='samples/qmcpack/workspace/NiO/dmc-a4-e48-batched_driver-DU8',
-                            command='../../../build/bin/qmcpack', options=['./NiO-fcc-S1-dmc.xml'], cleanup=False)
+                            command='../../../build/bin/qmcpack', versions=['vp-opt'], options=['./NiO-fcc-S1-dmc.xml'], cleanup=False)
 
     def __init__(self, name, arch, version=None):
         self._name = name
