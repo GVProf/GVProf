@@ -71,7 +71,7 @@ def format_graph(args):
             if frame == '' or frame == '\n':
                 continue
             line, func = frame.split('\t')
-            if known is True and (line.find('Unknown') == 0 or line.find('<unknown file>') == 0):
+            if known is True and (line.find('Unknown') != -1 or line.find('<unknown file>') != -1):
                 continue
             if choice == 'path':
                 func = ''
