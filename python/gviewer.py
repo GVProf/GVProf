@@ -66,11 +66,12 @@ def format_graph(args):
         ret = ''
         if choice == 'none':
             return ret
-        # context.replace("\'\\\n")
-        frames = context.splitlines()
+        frames = context.split('#')
         for frame in frames[::-1]:
+            if frame == '' or frame == '\n':
+                continue
             line, func = frame.split('\t')
-            if known is True and (line.find('Unknown') == 0 or line.find('<unknown file>') == 0):
+            if known is True and (line.find('Unknown') != -1 or line.find('<unknown file>') != -1):
                 continue
             if choice == 'path':
                 func = ''
@@ -120,7 +121,7 @@ def format_graph(args):
     return G
 
 
-def prune_graph(G, node_threshold=0.0, edge_threshold=0.0):
+def prune_graph(G, node_threshold=0.0, edge_threshold=0.0, keep_redundancy=False):
     # 1. prune no edge nodes
     nodes_with_edges = dict()
     for node in G.nodes():
@@ -131,7 +132,7 @@ def prune_graph(G, node_threshold=0.0, edge_threshold=0.0):
         nodes_with_edges[edge[1]] = True
 
     for k, v in nodes_with_edges.items():
-        if v == False:
+        if v is False:
             # XXX(Keren): pay attention to complexity O(NE)
             G.delete_node(k)
 
@@ -159,7 +160,10 @@ def prune_graph(G, node_threshold=0.0, edge_threshold=0.0):
     for edge, attrs in G.edges().items():
         if attrs['count'] is not None:
             importance = float(attrs['count']) / edge_total_count
-            if float(attrs['redundancy']) >= RED_LEVEL_2 or importance >= edge_threshold:
+            if importance >= edge_threshold:
+                node_reserve[edge[0]] = True
+                node_reserve[edge[1]] = True
+            elif keep_redundancy is True and float(attrs['redundancy']) >= RED_LEVEL_2:
                 node_reserve[edge[0]] = True
                 node_reserve[edge[1]] = True
             else:
@@ -282,9 +286,14 @@ def create_pretty_graph(G):
 
     def label_node_duplicate(node):
         dup = node.attr['duplicate']
+        label = ''
+
+        if dup is None:
+          return label
+
         dup_entries = dup.split(';')
         from_node = node.get_name()
-        label = ''
+
         for dup_entry in dup_entries:
             if len(dup_entry) > 0:
                 dup_node = dup_entry.split(',')[0]
@@ -335,11 +344,11 @@ def create_pretty_graph(G):
     return G
 
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('-f', '--file', help='file name')
 parser.add_argument('-cf', '--context-filter', choices=[
                     'path', 'file', 'func', 'all', 'none'], default='all', help='show part of the calling context')
-parser.add_argument('-k', '--known', action='store_true', default=True,
+parser.add_argument('-k', '--known', action='store_true', default=False,
                     help='show only known function')
 parser.add_argument('-l', '--leaf', action='store_true', default=False,
                     help='show only leaf function')
@@ -349,6 +358,8 @@ parser.add_argument('-pn', '--prune-node', default=0.0,
                     help='prune node lower bound')
 parser.add_argument('-pe', '--prune-edge', default=0.0,
                     help='prune edge lower bound')
+parser.add_argument('-kr', '--keep-redundancy', action='store_true', default=False,
+                    help='keep all high redundancy edges')
 parser.add_argument(
     '-ly', '--layout', choices=['dot', 'neato', 'circo'], default='dot', help='svg layout')
 parser.add_argument('-pr', '--pretty', action='store_true', default=False,
@@ -364,7 +375,7 @@ if float(args.prune_node) > 0.0 or float(args.prune_edge) > 0.0:
   if args.verbose:
     print('Prune graph: {} nodes and {} edges...'.format(
         len(G.nodes()), len(G.edges())))
-  G = prune_graph(G, float(args.prune_node), float(args.prune_edge))
+  G = prune_graph(G, float(args.prune_node), float(args.prune_edge), args.keep_redundancy)
 
 if args.verbose:
   print('Refine graph...')

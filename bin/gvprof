@@ -19,6 +19,8 @@ Usage:
       enable fine-grained gpu instruction analysis
     -s <sampling frequency>
       set block sampling frequency
+    -l <launcher>
+      pass launcher command for execution. (e.g., "mpirun -np 1")
     -v verbose
       redirect output to gvprof.log
 EOF
@@ -43,6 +45,10 @@ do
     -cfg)
       export GVPROF_CFG=1
       ;;
+    -l)
+      export GVPROF_LAUNCHER="$1"
+      shift
+      ;;
     -ck)
       export GVPROF_CONTROL_KNOBS="$GVPROF_CONTROL_KNOBS -ck $1"
       shift
@@ -63,7 +69,7 @@ do
 done
 
 GVPROF_EXEC=$1
-GVPROF_ARGS="${@:2}"
+GVPROF_ARGS="${*:2}"
 
 if [ -z "$GVPROF_EXEC" ]
 then
@@ -95,16 +101,17 @@ fi
 #echo $GVPROF_THREADS
 #echo $GVPROF_EVENT
 #echo $GVPROF_CONTROL_KNOBS
+#echo $GVPROF_LAUNCHER
 
 MEASUREMENTS=gvprof-measurements
 DATABASE=gvprof-database
-echo "Make sure "$MEASUREMENTS" and "$DATABASE" is clean"
+echo "Make sure $MEASUREMENTS and $DATABASE is clean"
 rm -rf $MEASUREMENTS
 rm -rf $DATABASE
 
 echo "First pass: dump and analyze CPU and GPU binaries"
 
-hpcrun -e gpu=nvidia -o $MEASUREMENTS $GVPROF_EXEC $GVPROF_ARGS &> $GVPROF_REDIRECT
+$GVPROF_LAUNCHER hpcrun -e gpu=nvidia -o $MEASUREMENTS $GVPROF_EXEC $GVPROF_ARGS &> $GVPROF_REDIRECT
 rm -rf $MEASUREMENTS/*.hpcrun
 
 if [ ! -z "$GVPROF_CFG" ]
@@ -119,7 +126,7 @@ hpcstruct $GVPROF_EXEC -o $BASENAME".hpcstruct" &>> $GVPROF_REDIRECT
 
 echo "Second pass: profiling"
 
-hpcrun -e gpu=nvidia,$GVPROF_EVENT$GVPROF_SAMPLING_FREQUENCY -o $MEASUREMENTS $GVPROF_CONTROL_KNOBS $GVPROF_EXEC $GVPROF_ARGS &>> $GVPROF_REDIRECT
+$GVPROF_LAUNCHER hpcrun -e gpu=nvidia,$GVPROF_EVENT$GVPROF_SAMPLING_FREQUENCY -o $MEASUREMENTS $GVPROF_CONTROL_KNOBS $GVPROF_EXEC $GVPROF_ARGS &>> $GVPROF_REDIRECT
 hpcprof -S $BASENAME".hpcstruct" -o $DATABASE $MEASUREMENTS &>> $GVPROF_REDIRECT
 
 echo "Done..."

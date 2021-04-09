@@ -1,6 +1,9 @@
 # GVProf
 
 [![DOI](https://zenodo.org/badge/194196140.svg)](https://zenodo.org/badge/latestdoi/194196140)
+[![CodeFactor](https://www.codefactor.io/repository/github/gvprof/gvprof/badge/develop)](https://www.codefactor.io/repository/github/gvprof/gvprof/overview/develop)
+[![Documentation Status](https://readthedocs.org/projects/gvprof/badge/?version=latest)](https://gvprof.readthedocs.io/en/latest/?badge=latest)
+
 
 GVProf is a value profiler for NVIDIA GPUs to explore value-related inefficiencies in GPU-accelerated applications.
 
@@ -8,17 +11,23 @@ GVProf is a value profiler for NVIDIA GPUs to explore value-related inefficienci
 
 ```bash
 git clone --recursive git@github.com:Jokeren/GVProf.git && cd GVProf
+
+# Install gvprof
 ./bin/install
+
+# Setup environment variables
+
+# Test a sample
 cd samples/vectorAdd.f32
 make
-../../bin/gvprof -e redundancy ./vectorAdd
+gvprof -e redundancy ./vectorAdd
 ```
 
 ## Documentation
 
-- [Installation Guide](https://github.com/Jokeren/GVProf/blob/master/INSTALL.md)
-- [User's Guide](https://github.com/Jokeren/GVProf/blob/master/MANUAL.md)
-- [Developer's Guide]
+- [Installation Guide](https://gvprof.readthedocs.io/en/latest/install.html)
+- [User's Guide](https://gvprof.readthedocs.io/en/latest/manual.html)
+- [Developer's Guide](https://gvprof.readthedocs.io/en/latest/workflow.html)
 
 ## Papers
 
