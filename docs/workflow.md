@@ -2,6 +2,14 @@
 
 ## Use GPU Patch to collect data
 
-## Develop a analysis pipeline
+## Develop an analysis pipeline
 
 ## Adopt redshow under with a different runtime
+
+## GVProf tests
+
+Currently, GVProf has end-to-end tests for each analysis mode plus an unit test for instruction analysis. Therefore, if a new analysis mode is added, we suppose the developer to add a test using python to verify its correctness. 
+
+For each analysis mode, the developer should write at least one simple case that covers most situations and collect results from samples.
+
+We are in the process of completing the testing framework.

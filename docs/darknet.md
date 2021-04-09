@@ -4,7 +4,7 @@
 
 [Darknet](https://github.com/AlexeyAB/darknet) is an open source neural network framework written in C and CUDA. It is fast, easy to install, and supports CPU and GPU computation.
 
-We checked out Darknet version `312fd2e99a765949e468e18277d41f7992f08860`, studied the `yolov4.cfg` and `yolov4-tiny.cfg` networks, and segmented `dog.jpg`.
+We check out Darknet version `312fd2e99a765949e468e18277d41f7992f08860`, study the `yolov4.cfg` and `yolov4-tiny.cfg` networks, and test an image `dog.jpg`.
 
 To compile darknet, we setup the following knobs in Makefile:
 
@@ -18,15 +18,19 @@ CFLAGS=-g ...
 
 ## Profiling
 
-For the data flow mode, one can use gvprof to profile darknet directly. `-ck HPCRUN_SANITIZER_READ_TRACE_IGNORE=1` yields significant speedup.
+For the data flow analysis, one can use gvprof to profile darknet directly. `-ck HPCRUN_SANITIZER_READ_TRACE_IGNORE=1` yields significant speedup.
 
-For the value pattern mode, we recommend using whitelist to specify the interesting kernels and turn on block sampling and kernel samples. In addition, if GPU control flow graphs are wanted, we don't recommend using `gvprof -cfg` directly because darknet uses cuBLAS and cuDNN, loading hundreds of large binaries at runtime. In fact, darkent's data type is almost uniform across all kernels so that one can gain insights even without `-cfg`.
+For the value pattern analysis, we recommend using a whitelist to specify interesting GPU kernels and turning on block sampling and kernel samples.
+In addition, if control flow graph based analysis is wanted, we don't recommend using `gvprof -cfg` directly because Darknet uses cuBLAS and cuDNN that trigger hundreds of large binaries loading at runtime.
+In fact, darkent's data type is almost uniform across all kernels so that one can gain insights even without `-cfg`.
 
-We profiled the fine grain patterns of darknet using
-```
+We can profile the fine grain patterns of darknet using
+
+```bash
 gvprof -e value_pattern@10 -ck HPCRUN_SANITIZER_WHITELIST=./whitelist -ck HPCRUN_SANITIZER_KERNEL_SAMPLING_FREQUENCY=20
 ```
-In the `whitelist` file, we specified the following three kernels:
+
+In the `whitelist` file, we specify the following three kernels:
 
 ```
 _Z15add_bias_kernelPfS_iiii
@@ -42,4 +46,6 @@ Other than a few kernels with dense value patterns when approximation is used, w
 
 - *data_flow* - *redundant values*
 
-`upsampling_layer.c: 91` and `convolution_kernels.cu: 559`. In the generated data flow graph, we found that the nodes that invokes the `fill_ongpu` kernel always have redundant accesses. Because we run the inference mode only, the arrays are initialized with zeros and fill zeros again. To optimize it out, we can set up a flag for each array to indicate if it is "clean". A "clean" array shouldn't be filled zeros again.
+`upsampling_layer.c: 91` and `convolution_kernels.cu: 559`. In the generated data flow graph, we found that the nodes annotated with the `fill_ongpu` kernel always have redundant accesses.
+Because we run the inference mode only, the arrays are initialized with zeros and filled zeros again.
+To optimize it, we can set up a flag for each array to indicate if it is "clean". A "clean" array shouldn't be filled zeros again.

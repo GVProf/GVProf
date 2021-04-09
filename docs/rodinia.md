@@ -4,37 +4,39 @@
 
 - vp-opt1: *value_pattern* - *redundant zeros*
 
-[`backprop_cuda_kernel.cu: 81`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/backprop/backprop_cuda_kernel.cu#L81). The *delta* array has many elements zeros. We can check each entry on the GPU side to execute a specific branch. 
+[`backprop_cuda_kernel.cu: 81`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/backprop/backprop_cuda_kernel.cu#L81). The *delta* array has many zeros. We can check each entry on the GPU side to execute a special branch that avoid computation. 
 
 - vp-opt2: *data_flow* - *duplicate values*
 
-[`backprop_cuda.cu: 180`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/backprop/backprop_cuda.cu#L180). *net->input_units* is copied to GPU at *Line 118* and copied back at *Line 188*. Meanwhile, the both the GPU data and the CPU data are not changed. As a result, the copy at *Line 188* can be eliminated safely.
+[`backprop_cuda.cu: 180`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/backprop/backprop_cuda.cu#L180). *net->input_units* is copied to GPU at *Line 118* and copied back at *Line 188*. Meanwhile, both the GPU data and the CPU data are not changed. As a result, the copy at *Line 188* can be eliminated safely.
 
 ## bfs
 
 - vp-opt1: *value_pattern* - *type overuse*
 
-[`kernel.cu: 22`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/bfs/kernel.cu#L22). The *g_cost*'s values are the range of `[-127, 128)`. We can specify this array's type as `int_8` instead of `int` to reduce both kernel execution time and memory copy time.
+[`kernel.cu: 22`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/bfs/kernel.cu#L22). The *g_cost*'s array's values are within the range of `[-127, 128)`. We can specify this array's type as `int_8` instead of `int` to reduce both kernel execution time and memory copy time.
 
 - vp-opt2: *value_pattern* - *dense values*
 
-[`bfs.cu: 107-109`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/bfs/bfs.cu#L107). Accesses to these arrays showing a dense value pattern where zero is read most of the time. We can replace the memory copies of all zeros to from CPU to GPU by memset that is way much faster to reduce memory copy time.
+[`bfs.cu: 107-109`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/bfs/bfs.cu#L107). Accesses to these arrays showing a dense value pattern where zeros are read most of the time. We can replace the memory copies of all zeros from CPU to GPU by memset that is much faster to reduce memory copy time.
 
 ## cfd
 
 - vp-opt1: *value_pattern* - *dense values*
 
-[`euler3d.cu: 173`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/cfd/euler3d.cu#L173). The *cuda_initialize_variables* writes values in a dense pattern. We can *hash* the accessing index of this array to limit memory access in a certain range and increase cache locality. Since this array is changed in the second iteration, this optimization only applies to the first iteration.
+[`euler3d.cu: 173`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/cfd/euler3d.cu#L173). The *cuda_initialize_variables* function writes values in a dense pattern. We can *hash* the accessing index of this array to limit memory access in a certain range and increase cache locality. Since this array is changed in the second iteration, this optimization only applies to the first iteration.
 
 - vp-opt2: *data_flow* - *redundant values*
 
-[`euler3d.cu: 570`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/cfd/euler3d.cu#L570). The *old_variables* array is originally initialized at *Line 551* with the same values are *variables* but copied again at *Line 570*. We can safely eliminate the second copy which is redundant in the first iteration.
+[`euler3d.cu: 570`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/cfd/euler3d.cu#L570). The *old_variables* array is originally initialized at *Line 551* with the same values are *variables* but copied again at *Line 570*. We can safely eliminate the second copy which is redundant to the first iteration.
 
 ## hotspot
 
 - vp-opt: *value_pattern* - *approximate* - *single value*
 
-[`hotspot.cu: 164`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/hotspot/hotspot.cu#L164). The *temp_src* array contains many very close floating point numbers. Using the approximate mode, gvprof determines all this values in this array are approximately the same under the certain approximation level. Therefore, we can read just some neighbor points on *Line 195* and still get similar final results.
+[`hotspot.cu: 164`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/hotspot/hotspot.cu#L164). The *temp_src* array contains many very close floating point numbers.
+Using the approximate mode, gvprof determines values in this array are approximately the same under a certain approximation level.
+Therefore, we can read just some neighbor points on *Line 195* and still get similar final results.
 
 ## hotspot3D
 
