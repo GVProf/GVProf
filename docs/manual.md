@@ -97,7 +97,7 @@ hpcviewer <database-dir>
 - Data flow view
 
 ```bash
-gviewer -f <measurement-dir>/data_flow.dot.context -cf file -p 
+gviewer -f <database-dir>/data_flow.dot.context -cf file -p 
 # gviewer -h for detailed options
 ```
 The generated .svg can be visualized directly. To enable interactive control, we can rename the file to `demo.svg` and move it to `jquery.graphviz.svg`. After launch a server locally, we can visualize the graph, zoom in for important parts, and track each node's data flows.
@@ -106,13 +106,13 @@ The generated .svg can be visualized directly. To enable interactive control, we
 
 ```bash
 # value pattern
-less <measurement-dir>/value_pattern/value_pattern_t<cpu-thread-id>.csv
+less <database-dir>/value_pattern_t<cpu-thread-id>.csv
 
 # redundancy
-less <measurement-dir>/redundancy/temporal_read_t<cpu-thread-id>.csv
-less <measurement-dir>/redundancy/temporal_write_t<cpu-thread-id>.csv
-less <measurement-dir>/redundancy/spatial_read_t<cpu-thread-id>.csv
-less <measurement-dir>/redundancy/spatial_write_t<cpu-thread-id>.csv
+less <database-dir>/temporal_read_t<cpu-thread-id>.csv
+less <database-dir>/temporal_write_t<cpu-thread-id>.csv
+less <database-dir>/spatial_read_t<cpu-thread-id>.csv
+less <database-dir>/spatial_write_t<cpu-thread-id>.csv
 ```
 
 ## Example

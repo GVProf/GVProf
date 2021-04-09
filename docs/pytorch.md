@@ -4,9 +4,9 @@
 
 [PyTorch](https://pytorch.org/) is a popular machine learning framework.
 
-We used PyTorch version `f5788898a928cb2489926c1a5418c94c598c361b`. We studied `resnet50`, `bert`, `deepwave` models. 
+We use PyTorch version `f5788898a928cb2489926c1a5418c94c598c361b`. We study `resnet50`, `bert`, `deepwave` models. 
 
-Based on PyTorch's README, we adopted the following commands to compile PyTorch from source.
+We apply the following commands to compile PyTorch from source.
 
 ```bash
 spack install miniconda3
@@ -25,7 +25,7 @@ python setup.py install
 
 - *resnet*
 
-We get the `reset` example from the [pytorch benchmark](https://github.com/pytorch/benchmark/tree/master/torchbenchmark/models/resnet50) repo. 
+We get the `resnet` example from the [pytorch benchmark](https://github.com/pytorch/benchmark/tree/master/torchbenchmark/models/resnet50) repo. 
 
 To ease the installtion, we provide `1-spatial-convolution-model.py` and `1-spatial-convolution-unit.py` to check layer-wise and end-to-end performance.
 
@@ -40,12 +40,6 @@ To ease checking the problematic kernel, we provide `2-replication-pad3d.py` scr
 We get the `reset` example from the [pytorch benchmark](https://github.com/pytorch/benchmark/tree/master/torchbenchmark/models/resnet50).
 
 To ease checking the problematic kernel, we provide `3-embedding-unit.py` script which only has a single `Embedding` kernel.
-
-- *pygcn*
-
-We get [pygcn code](https://github.com/tkipf/pygcn) from github.
-
-To ease checking the problematic kernel, we provide `4-indexing-unit.py` script which only has a single `index_put_` kernel.
 
 ## Profiling
 
