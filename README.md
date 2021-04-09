@@ -11,10 +11,16 @@ GVProf is a value profiler for NVIDIA GPUs to explore value-related inefficienci
 
 ```bash
 git clone --recursive git@github.com:Jokeren/GVProf.git && cd GVProf
+
+# Install gvprof
 ./bin/install
+
+# Setup environment variables
+
+# Test a sample
 cd samples/vectorAdd.f32
 make
-../../bin/gvprof -e redundancy ./vectorAdd
+gvprof -e redundancy ./vectorAdd
 ```
 
 ## Documentation
