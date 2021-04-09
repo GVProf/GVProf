@@ -107,7 +107,7 @@ class ValuePatternTest(Test):
 
         for f in files:
             buf = pipe_read(
-                ['cat', 'gvprof-measurements/value_pattern/' + f]).decode('utf-8')
+                ['cat', 'gvprof-database/' + f]).decode('utf-8')
             res, msg = check(op_counts, kernel_patterns, buf)
             if res is False:
                 print('Error ' + path + ' ' + msg)

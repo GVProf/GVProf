@@ -44,7 +44,7 @@ class DataFlowTest(Test):
         # Just count the number of nodes and edges,
         # redundancy and overwrite is difficult for autotest
         for i, f in enumerate(files):
-            f = 'gvprof-measurements/data_flow/' + f
+            f = 'gvprof-database/' + f
             agraph = pgv.AGraph(f, strict=False)
             correct = True
             if len(agraph.nodes()) != nodes[i]:

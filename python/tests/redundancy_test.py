@@ -90,7 +90,7 @@ class RedundancyTest(Test):
 
             def redundancy_compare(red_files, true_reds):
                 for i, red_file in enumerate(red_files):
-                    red_file = 'gvprof-measurements/redundancy/' + red_file
+                    red_file = 'gvprof-database/' + red_file
                     res = pipe_read(['tail', '-n', '1', red_file]).decode()
                     red = float(res.split(',')[0])
                     true_red = float(true_reds[i])
