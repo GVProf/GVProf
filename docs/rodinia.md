@@ -68,9 +68,9 @@ Therefore, we can read just some neighbor points on *Line 195* and still get sim
 
 [`srad_kernel.cu: 79`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/srad_v1/srad_kernel.cu#L79). *d_c_loc* is always one for this output. We can memset all the values of *d_c* to 1 beforehand and to eliminate all stores with 1s
 
-- vp-opt2: *value_pattern* - 
+- vp-opt2: *value_pattern* - *structured*
 
-*structured*[`srad_kernel.cu:`](https://github.com/GVProf/GVProf-samples/blob/a8c23e3aba/srad_v1-vp-opt2/srad_kernel.cu#L34) *d_iN*, *d_iS*, *d_jW*, *d_jE* are used to indicate the adjacent nodes' coordinates which have structured patterns. We removed these four arrays and replace them with the corresponding calculations.
+[`srad_kernel.cu:`](https://github.com/GVProf/GVProf-samples/blob/a8c23e3aba/srad_v1-vp-opt2/srad_kernel.cu#L34) *d_iN*, *d_iS*, *d_jW*, *d_jE* are used to indicate the adjacent nodes' coordinates which have structured patterns. We removed these four arrays and replace them with the corresponding calculations.
 
 ## streamcluster
 
