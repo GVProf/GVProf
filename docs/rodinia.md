@@ -70,7 +70,7 @@ Therefore, we can read just some neighbor points on *Line 195* and still get sim
 
 - vp-opt2: *value_pattern* - *structured*
 
-[`srad_kernel.cu: 38`](https://github.com/GVProf/GVProf-samples/blob/a8c23e3aba/srad_v1/srad_kernel.cu#L38) *d_iN*, *d_iS*, *d_jW*, *d_jE* are used to indicate the adjacent nodes' coordinates which have structured patterns. We removed these four arrays and replace them with the corresponding calculations.
+[`srad_kernel.cu: 38`](https://github.com/GVProf/GVProf-samples/blob/a8c23e3aba/srad_v1/srad_kernel.cu#L38) . *d_iN*, *d_iS*, *d_jW*, *d_jE* are used to indicate the adjacent nodes' coordinates which have structured patterns. We removed these four arrays and replace them with the corresponding calculations.
 
 ## streamcluster
 
