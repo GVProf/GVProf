@@ -16,6 +16,9 @@ git clone --recursive git@github.com:Jokeren/GVProf.git && cd GVProf
 ./bin/install
 
 # Setup environment variables
+export PATH=$(pwd)/gvprof/bin:$PATH
+export PATH=$(pwd)/gvprof/hpctoolkit/bin:$PATH
+export PATH=$(pwd)/gvprof/redshow/bin:$PATH
 
 # Test a sample
 cd samples/vectorAdd.f32
