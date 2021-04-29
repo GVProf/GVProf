@@ -65,7 +65,7 @@ hpcprof -S <app-name>.hpcstruct hpctoolkit-<app-name>-measurements
 hpcviewer hpctoolkit-<app-name>-measurements
 ```
 
-- Options
+## Control Knobs
 
 The following fine-grained options can be passed to either gvprof or hpcrun by pointing the option name and option value with `-ck <option-name>=<option-value>`.
 
