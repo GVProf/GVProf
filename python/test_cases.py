@@ -33,7 +33,7 @@ class Test(object):
     cases['huffman'] = Case(path='samples/huffman', command='./pavle', versions=[
                             'vp-opt'], options=['../data/test1024_H2.206587175259.in'], cleanup=True)
     cases['lavaMD'] = Case(path='samples/lavaMD', command='./lavaMD',
-                           versions=['vp-opt'], options=['-boxes1d', '30'], cleanup=True)
+                           versions=['vp-opt'], options=['-boxes1d', '10'], cleanup=True)
     cases['particlefilter'] = Case(path='samples/particlefilter', command='./particlefilter_float', versions=[
                                    'vp-opt'], options=['-x', '128', '-y', '128', '-z', '10', '-np', '1000'], cleanup=True)
     cases['pathfinder'] = Case(path='samples/pathfinder', command='./pathfinder',
