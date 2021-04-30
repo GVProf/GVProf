@@ -1,12 +1,12 @@
 # Workflow
 
-## Use GPU Patch to collect data
+## Use GPU Patch
 
-## Develop an analysis pipeline
+## Use RedShow with HPCToolkit
 
-## Adopt redshow under with a different runtime
+## Use RedShow with a Custom Runtime
 
-## GVProf tests
+## GVProf Tests
 
 Currently, GVProf has end-to-end tests for each analysis mode plus an unit test for instruction analysis. Therefore, if a new analysis mode is added, we suppose the developer to add a test using python to verify its correctness. 
 
