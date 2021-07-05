@@ -29,7 +29,7 @@ In the first pass, we dump the cubins loaded at runtime and profile each kernel'
 In the second pass, we instrument the cubins and invoke `redshow` redundancy analysis library to analyze measurement data.
 
 
-- First pass
+### First pass
    
 ```bash
 hpcrun -e gpu=nvidia <app-name>
@@ -40,7 +40,7 @@ hpcstruct --gpucfg no hpctoolkit-<app-name>-measurements
 hpcstruct --gpucfg no <binary-name>
 ```
    
-- Second pass
+### Second pass
 
 ```bash
 # Before profiling, we remove all profile data dumped in the first pass
@@ -53,7 +53,7 @@ hpcprof -S <app-name>.hpcstruct hpctoolkit-<app-name>-measurements
 hpcprof -S <app-name>.hpcstruct -S <binary-name>.hpcstruct hpctoolkit-<app-name>-measurements    
 ```
 
-- HPCToolkit separate pass
+### HPCToolkit separate pass
 
 Large scale applications, such as Castro heavily use lambda functions and template functions for GPU kernels. Therefore, tools like `nsys` and `ncu` cannot efficiently correlate each kernel's execution time their names. Even though nvtx can provide some information to locate kernels, it is still not straightforward to map metrics back to source lines. Instead, we recommend using HPCToolkit, which provides an integrate calling context span CPUs and GPUs, to lookup the calling context and running time for each kernel. The following commands can be used.
 
@@ -88,13 +88,13 @@ HPCRUN_SANITIZER_GPU_ANALYSIS_BLOCKS=<number of gpu blocks dedicated for analysi
 
 Currently, GVProf supports using hpcviewer to associate the redundancy metrics with individual GPU source code and using gviewer to process data flow metrics and prune unnecessary nodes/edges. We plan to integrate value pattern metrics into the data flow view for more friendly use of GVProf.
 
-- Calling context view (does not contain GPU calling context currently)
+### Calling context view (does not contain GPU calling context currently)
 
 ```bash
 hpcviewer <database-dir>
 ```
       
-- Data flow view
+### Data flow view
 
 ```bash
 gviewer -f <database-dir>/data_flow.dot.context -cf file -p 
@@ -102,7 +102,7 @@ gviewer -f <database-dir>/data_flow.dot.context -cf file -p
 ```
 The generated .svg can be visualized directly. To enable interactive control, we can rename the file to `demo.svg` and move it to `jquery.graphviz.svg`. After launch a server locally, we can visualize the graph, zoom in for important parts, and track each node's data flows.
 
-- Fine grain pattern views
+### Fine grain pattern views
 
 ```bash
 # value pattern

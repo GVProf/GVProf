@@ -10,7 +10,7 @@ GVProf is an advanced value profiler that locates value redundancy problems in G
 GVProf's code is available on `Github <https://github.com/Jokeren/GVProf>`_.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
    :caption: GVProf Basics
 
    preface
