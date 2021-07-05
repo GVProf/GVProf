@@ -34,7 +34,7 @@ GVProf's code is available on `Github <https://github.com/Jokeren/GVProf>`_.
    gviewer
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
    :caption: GVProf Samples
 
    unit_tests
