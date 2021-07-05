@@ -7,10 +7,10 @@ The following diagram describes how components communicate with each other.
 ```
                                                                                                                                            
    -------------       ---------------------       ---------------------      *************************************
-	 | GPU Patch |  <->  | Profiling Runtime |  <->  | Profiling Runtime |  ->  ** Program Analyzer and Aggregator **  ->  Performance Reports
+   | GPU Patch |  <->  | Profiling Runtime |  <->  | Profiling Runtime |  ->  ** Program Analyzer and Aggregator **  ->  Performance Reports
 	 -------------       ---------------------       ---------------------      *************************************
                                                             |                                                               /|\
-																														|----------------------------------------------------------------|
+                                                            |----------------------------------------------------------------|
 
 ```
 
@@ -27,7 +27,7 @@ It receives data from the profiling runtime, performs analysis enabled by the us
 
 ## GPU Patch
 
-[*GPU Patch*] includes several implementation of instrumentation callbacks and a GPU-CPU communication system.
+*GPU Patch* includes several implementation of instrumentation callbacks and a GPU-CPU communication system.
 It can collect GPU memory metrics, block enter/exit records, and GPU call/ret records (under development).
 The collected data are stored on a GPU buffer.
 The profiling runtime observes a signal once the GPU buffer is full and copies data from the GPU to the CPU.
@@ -36,5 +36,5 @@ The profiling runtime observes a signal once the GPU buffer is full and copies d
 
 Some high level performance metrics are output to performance reports directly. 
 Low level detailed performance metrics are associated with individual functions and lines.
-Therefore, we need analyze program structure to attribute these metrics.
+Therefore, we analyze program structure to attribute these metrics.
 Moreover, when analyzing application running on multiple nodes, we can aggregate performance data together to compute overall metrics that represent the entire execution.
