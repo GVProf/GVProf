@@ -8,13 +8,13 @@ The following diagram describes how components communicate with each other.
                                                                                                                                            
    -------------       ---------------------       ---------------------      *************************************
    | GPU Patch |  <->  | Profiling Runtime |  <->  | Profiling Runtime |  ->  ** Program Analyzer and Aggregator **  ->  Performance Reports
-	 -------------       ---------------------       ---------------------      *************************************
+   -------------       ---------------------       ---------------------      *************************************
                                                             |                                                               /|\
                                                             |----------------------------------------------------------------|
 
 ```
 
-## HPCToolkit (sanitizer)
+## HPCToolkit (Profiling Runtime)
 
 [*HPCToolkit*](http://hpctoolkit.org/) is a powerful profiling tool that measures application performance on the world's largest supercomputers.
 GVProf customizes HPCToolkit and uses it as the default profiling runtime.
@@ -24,6 +24,8 @@ Currently, we are developing on HPCToolkit's [*sanitizer*](https://github.com/GV
 
 [*Redshow*](https://github.com/GVProf/redshow) is a postmortem metrics analysis substrate.
 It receives data from the profiling runtime, performs analysis enabled by the user, and store the analysis result onto the disk.
+Besides, redshow maintains the information of data objects allocated at runtime.
+Redshow also contains binary analysis modules to map virtual addresses to function index and symbol names and analyze GPU instruction characteristics.
 
 ## GPU Patch
 
@@ -32,7 +34,7 @@ It can collect GPU memory metrics, block enter/exit records, and GPU call/ret re
 The collected data are stored on a GPU buffer.
 The profiling runtime observes a signal once the GPU buffer is full and copies data from the GPU to the CPU.
 
-## Program Analyzer and Aggregator is optional
+## Program Analyzer and Aggregator
 
 Some high level performance metrics are output to performance reports directly. 
 Low level detailed performance metrics are associated with individual functions and lines.
