@@ -88,7 +88,10 @@ HPCRUN_SANITIZER_GPU_ANALYSIS_BLOCKS=<number of gpu blocks dedicated for analysi
 
 Currently, GVProf supports using hpcviewer to associate the redundancy metrics with individual GPU source code and using gviewer to process data flow metrics and prune unnecessary nodes/edges. We plan to integrate value pattern metrics into the data flow view for more friendly use of GVProf.
 
-### Calling context view (does not contain GPU calling context currently)
+### Calling context view 
+
+Only CPU calling context is available now.
+GPU calling context is under development.
 
 ```bash
 hpcviewer <database-dir>
