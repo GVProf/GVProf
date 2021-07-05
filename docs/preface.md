@@ -5,11 +5,11 @@ GVProf is a memory profiling tool for applications running on GPU clusters, with
 The following diagram describes how components communicate with each other.
 
 ```
-
+                                                                                                                                           
    -------------       ---------------------       ---------------------      *************************************
 	 | GPU Patch |  <->  | Profiling Runtime |  <->  | Profiling Runtime |  ->  ** Program Analyzer and Aggregator **  ->  Performance Reports
 	 -------------       ---------------------       ---------------------      *************************************
-	 																													|                                                               /|\
+                                                            |                                                               /|\
 																														|----------------------------------------------------------------|
 
 ```
