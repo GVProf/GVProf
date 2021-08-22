@@ -50,10 +50,7 @@ export PATH=${SPACK_ROOT}/bin:${PATH}
 source ${SPACK_ROOT}/share/spack/setup-env.sh
 
 # Install hpctoolkit dependencies
-spack install --only dependencies hpctoolkit ^dyninst@master ^binutils@2.34
-# XXX(Keren): Temporary workaround until new hpctoolkit is merged
-spack install libmonitor@master +dlopen +hpctoolkit
-MONITOR=$(spack find --path libmonitor@master | tail -n 1 | cut -d ' ' -f 3)
+spack install --only dependencies hpctoolkit ^dyninst@master ^binutils@2.34+libiberty~nls ^libmonitor@master+dlopen+hpctoolkit
 
 # Install gpu-patch
 cd $SOURCE_DIR
@@ -75,7 +72,7 @@ mkdir build
 cd build
 ../configure --prefix=$DIR/hpctoolkit --with-cuda=$CUDA_PATH \
 --with-sanitizer=$SANITIZER_PATH --with-gpu-patch=$DIR/gpu-patch \
---with-redshow=$DIR/redshow --with-spack=$S --with-libmonitor=$MONITOR
+--with-redshow=$DIR/redshow --with-spack=$S 
 make install -j16
 
 cd $SOURCE_DIR
