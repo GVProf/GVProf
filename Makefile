@@ -13,7 +13,7 @@ INCLUDE_DIRS := -I$(CUDA_PATH)/include -I$(SANITIZER_PATH)/include -I$(CUPTI_PAT
 SRC_DIR := src
 CXXFLAGS := $(INCLUDE_DIRS) -O3 --fatbin
 
-ARCHS := 50 60 70 72 75 80 85
+ARCHS := 50 60 70 72 75 80 86
 
 # Generate SASS code for each SM architectures
 $(foreach sm,$(ARCHS),$(eval GENCODE_FLAGS += -gencode arch=compute_$(sm),code=sm_$(sm)))
