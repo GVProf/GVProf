@@ -1,0 +1,87 @@
+#!/bin/bash            
+
+SOURCE_DIR=$(pwd)
+DIR=""
+CUDA_PATH=/usr/local/cuda/
+SANITIZER_PATH=$CUDA_PATH/compute-sanitizer
+
+if [ $# -eq 0 ]; then
+  DIR=$(pwd)/gvprof
+else
+  if [ $# -eq 1 ]; then
+    DIR=$1
+  else
+    if [ $# -eq 2 ]; then
+      DIR=$1
+      CUDA_PATH=$2
+      SANITIZER_PATH=$2/compute-sanitizer
+    else
+      if [ $# -eq 3 ]; then
+        DIR=$1
+        CUDA_PATH=$2
+        SANITIZER_PATH=$3
+      fi
+    fi
+  fi  
+fi
+
+
+if [ -z "$DIR" ]
+then
+  echo "Wrong paths"
+  echo "./install <prefix> <cuda-path> <sanitizer-path>"
+  exit
+fi
+
+echo $DIR
+echo $CUDA_PATH
+echo $SANITIZER_PATH
+
+if [ ! -d $DIR ]
+then
+  mkdir $DIR
+fi
+
+cd $DIR
+# Install spack
+git clone https://github.com/spack/spack.git
+export SPACK_ROOT=$(pwd)/spack
+export PATH=${SPACK_ROOT}/bin:${PATH}
+source ${SPACK_ROOT}/share/spack/setup-env.sh
+
+# Install hpctoolkit dependencies
+spack install --only dependencies hpctoolkit ^dyninst@master ^binutils@2.34+libiberty~nls 
+spack install libmonitor@master+dlopen+hpctoolkit
+
+# Install gpu-patch
+cd $SOURCE_DIR
+make PREFIX=$DIR/gpu-patch SANITIZER_PATH=$SANITIZER_PATH CUDA_PATH=$CUDA_PATH install
+
+# Find spack and boost dir
+B=$(spack find --path boost | tail -n 1 | cut -d ' ' -f 3)
+S=${B%/*}
+
+# Install redshow
+cd $SOURCE_DIR
+cd redshow
+make PREFIX=$DIR/redshow BOOST_DIR=$B GPU_PATCH_DIR=$DIR/gpu-patch/ DEBUG=1 install
+
+# install hpctoolkit
+cd $SOURCE_DIR
+cd hpctoolkit
+mkdir build
+cd build
+../configure --prefix=$DIR/hpctoolkit --with-cuda=$CUDA_PATH \
+--with-sanitizer=$SANITIZER_PATH --with-gpu-patch=$DIR/gpu-patch \
+--with-redshow=$DIR/redshow --with-spack=$S  --enable-develop
+make install -j16
+
+cd $SOURCE_DIR
+mkdir $DIR/bin
+mkdir $DIR/python
+cp ./bin/gvprof $DIR/bin/
+cp -r ./python $DIR
+echo "python $DIR/python/gviewer.py "'${@:1}' > $DIR/bin/gviewer
+chmod +x $DIR/bin/gviewer
+
+echo "Install in $DIR/bin/gvprof"

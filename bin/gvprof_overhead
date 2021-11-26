@@ -1,0 +1,137 @@
+#!/bin/bash
+
+usage() {
+  cat <<EOF
+Usage:
+    gvprof [profiling options] [executable] [executable options]
+    profiling options:
+    -h help
+    -e <profiling-event>
+      redundancy
+      data_flow
+      value_pattern
+    -j <cpu-threads> 
+      multi-threading analysis for binaries 
+    -ck <control-knob>
+      control knob values
+    -cfg gpu-cfg
+      enable fine-grained gpu instruction analysis
+    -s <sampling frequency>
+      set block sampling frequency
+    -l <launcher>
+      pass launcher command for execution. (e.g., "mpirun -np 1")
+    -v verbose
+      redirect output to gvprof.log
+EOF
+  exit 0
+}
+
+while test "x$1" != x; do
+  arg="$1"
+  shift
+  case "$arg" in
+  -v)
+    export GVPROF_VERBOSE=1
+    ;;
+  -j)
+    export GVPROF_THREADS=$1
+    shift
+    ;;
+  -e)
+    export GVPROF_EVENT=$1
+    shift
+    ;;
+  -cfg)
+    export GVPROF_CFG=1
+    ;;
+  -l)
+    export GVPROF_LAUNCHER="$1"
+    shift
+    ;;
+  -ck)
+    export GVPROF_CONTROL_KNOBS="$GVPROF_CONTROL_KNOBS -ck $1"
+    shift
+    ;;
+  -s)
+    export GVPROF_SAMPLING_FREQUENCY="@$1"
+    shift
+    ;;
+  -i)
+    export GVPROF_ITERATIONS="$1"
+    shift
+    ;;
+  -h)
+    usage
+    exit
+    ;;
+  *)
+    set -- "$arg" "$@"
+    break
+    ;;
+  esac
+done
+
+GVPROF_EXEC=$1
+GVPROF_ARGS="${*:2}"
+
+if [ -z "$GVPROF_EXEC" ]; then
+  echo "Empty executable"
+  exit
+fi
+
+if [ -z "$GVPROF_EVENT" ]; then
+  echo "Empty event"
+  exit
+fi
+
+if [ -z "$GVPROF_THREADS" ]; then
+  export GVPROF_THREADS=1
+fi
+
+if [ ! -z "$GVPROF_VERBOSE" ]; then
+  export GVPROF_REDIRECT=./gvprof.log
+else
+  export GVPROF_REDIRECT=/dev/null
+fi
+
+##Test
+#echo $GVPROF_EXEC
+#echo $GVPROF_ARGS
+#echo $GVPROF_THREADS
+#echo $GVPROF_EVENT
+#echo $GVPROF_CONTROL_KNOBS
+#echo $GVPROF_LAUNCHER
+
+MEASUREMENTS=gvprof-measurements
+DATABASE=gvprof-database
+echo "Make sure $MEASUREMENTS and $DATABASE is clean"
+rm -rf $MEASUREMENTS
+rm -rf $DATABASE
+
+echo "First pass: dump and analyze CPU and GPU binaries"
+
+$GVPROF_LAUNCHER hpcrun -e gpu=nvidia -o $MEASUREMENTS $GVPROF_EXEC $GVPROF_ARGS &>$GVPROF_REDIRECT
+rm -rf $MEASUREMENTS/*.hpcrun
+
+if [ ! -z "$GVPROF_CFG" ]; then
+  hpcstruct --gpucfg yes -j $GVPROF_THREADS $MEASUREMENTS &>>$GVPROF_REDIRECT
+else
+  hpcstruct -j $GVPROF_THREADS $MEASUREMENTS &>>$GVPROF_REDIRECT
+fi
+
+BASENAME=./$(basename $GVPROF_EXEC)
+hpcstruct $GVPROF_EXEC -o $BASENAME".hpcstruct" &>>$GVPROF_REDIRECT
+
+echo "Second pass: profiling"
+
+if [ -z "$GVPROF_ITERATIONS" ]; then
+  export GVPROF_ITERATIONS=1
+fi
+echo "ITERATIONS $GVPROF_ITERATIONS"
+START=1
+for (( i=$START; i<=${GVPROF_ITERATIONS}; i++ ));do
+{ time   $GVPROF_LAUNCHER hpcrun -e gpu=nvidia,$GVPROF_EVENT$GVPROF_SAMPLING_FREQUENCY -o $MEASUREMENTS $GVPROF_CONTROL_KNOBS $GVPROF_EXEC $GVPROF_ARGS &>>$GVPROF_REDIRECT
+  hpcprof -S $BASENAME".hpcstruct" -o $DATABASE $MEASUREMENTS &>>$GVPROF_REDIRECT ; } 2>>time_$GVPROF_EVENT.txt
+done
+
+echo "Done..."
