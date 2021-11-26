@@ -115,7 +115,7 @@ parser.add_argument('-c', '--case', help='case name')
 parser.add_argument('-v', '--version', default='all', help='benchmark version')
 parser.add_argument('-i', '--iterations', type=int, default=1)
 parser.add_argument('-a', '--arch', choices=['sm_70', 'sm_72',
-                    'sm_75', 'sm_80', 'sm_85'], default='sm_70', help='gpu arch name')
+                    'sm_75', 'sm_80', 'sm_86'], default='sm_70', help='gpu arch name')
 args = parser.parse_args()
 
 if args.case is None:
