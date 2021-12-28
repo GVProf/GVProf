@@ -62,14 +62,17 @@ class Graph:
 
 
 def format_graph(args):
+    import re
     def format_context(context, choice, known, leaf):
         ret = ''
         if choice == 'none':
             return ret
-        frames = context.split('#')
+        frames = context.split('#\n')
         for frame in frames[::-1]:
             if frame == '' or frame == '\n':
                 continue
+            frame = frame.strip()
+            frame = re.sub(r"#\d+", '', frame)
             line, func = frame.split('\t')
             if known is True and (line.find('Unknown') != -1 or line.find('<unknown file>') != -1):
                 continue
