@@ -59,6 +59,6 @@ We don't provide an automate performance testing suite for PyTorch in GVProf bec
 
 Please refer to this [issue](https://github.com/pytorch/pytorch/issues/48539)
 
-- *data_flow* - *redundant values* - *value_pattern* - *redundant zeros*
+- *data_flow* - *redundant values* - *value_pattern* - *single zeros*
 
 Please refer to these two: [issue1](https://github.com/pytorch/pytorch/issues/48889) and [issue2](https://github.com/pytorch/pytorch/issues/49663)

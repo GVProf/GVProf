@@ -28,6 +28,6 @@ gvprof -e value_pattern -cfg ./bin/barracuda aln sample_data/Saccharomyces_cerev
 `barracuda.cu: 398`. In this function, cuda memory apis called after *Line 440* are not necessary when `number_of_sequences=0`.
 In that case, zero data are transferred between CPUs and GPUs such that arrays remain the same values, but still triggering API invocation cost. 
 
-- *value_pattern* - *dense values*
+- *value_pattern* - *frequent values*
 
 `cuda2.cuh: 865`. This line copies all the elements from a local array to a global array, regardless of their values. While CPU's `memcpy` is fast for contiguous copy, GPU's `memcpy` is not. We observe that this copy operation involes many zeros. Therefore, we can create a `hits` array to record which positions have been updated, then only copy values at these positions.

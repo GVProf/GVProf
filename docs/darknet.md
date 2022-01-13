@@ -38,7 +38,7 @@ _Z21im2col_gpu_kernel_extiPKfiiiiiiiiiiiiPf
 _Z26activate_array_mish_kernelPfiS_S_      
 ```
 
-Other than a few kernels with dense value patterns when approximation is used, we didn't find other interesting patterns.
+Other than a few kernels with frequent value patterns when approximation is used, we didn't find other interesting patterns.
 
 **You may want to lookup real kernel names with `gvprof -v` or `readelf -s` since compilers may generate different names**
 

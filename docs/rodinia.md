@@ -2,7 +2,7 @@
 
 ## backprop
 
-- vp-opt1: *value_pattern* - *redundant zeros*
+- vp-opt1: *value_pattern* - *single zeros*
 
 [`backprop_cuda_kernel.cu: 81`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/backprop/backprop_cuda_kernel.cu#L81). The *delta* array has many zeros. We can check each entry on the GPU side to execute a special branch that avoid computation.
 
@@ -16,15 +16,15 @@
 
 [`kernel.cu: 22`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/bfs/kernel.cu#L22). The *g_cost*'s array's values are within the range of `[-127, 128)`. We can specify this array's type as `int_8` instead of `int` to reduce both kernel execution time and memory copy time.
 
-- vp-opt2: *value_pattern* - *dense values*
+- vp-opt2: *value_pattern* - *frequent values*
 
-[`bfs.cu: 107-109`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/bfs/bfs.cu#L107). Accesses to these arrays showing a dense value pattern where zeros are read most of the time. We can replace the memory copies of all zeros from CPU to GPU by memset that is much faster to reduce memory copy time.
+[`bfs.cu: 107-109`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/bfs/bfs.cu#L107). Accesses to these arrays showing a frequent value pattern where zeros are read most of the time. We can replace the memory copies of all zeros from CPU to GPU by memset that is much faster to reduce memory copy time.
 
 ## cfd
 
-- vp-opt1: *value_pattern* - *dense values*
+- vp-opt1: *value_pattern* - *frequent values*
 
-[`euler3d.cu: 173`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/cfd/euler3d.cu#L173). The *cuda_initialize_variables* function writes values in a dense pattern. We can *hash* the accessing index of this array to limit memory access in a certain range and increase cache locality. Since this array is changed in the second iteration, this optimization only applies to the first iteration.
+[`euler3d.cu: 173`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/cfd/euler3d.cu#L173). The *cuda_initialize_variables* function writes values in a frequent value pattern. We can *hash* the accessing index of this array to limit memory access in a certain range and increase cache locality. Since this array is changed in the second iteration, this optimization only applies to the first iteration.
 
 - vp-opt2: *data_flow* - *redundant values*
 
@@ -46,9 +46,9 @@ Therefore, we can read just some neighbor points on *Line 195* and still get sim
 
 ## huffman
 
-- vp-opt: *value_pattern* - *dense values*
+- vp-opt: *value_pattern* - *frequent values*
 
-[`his.cu: 51`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/huffman/hist.cu#L51). GVProf reports dense values for the histo array in both the write and read modes. Because the most frequently updated value is zero, we can conditionally perform atomicAdd to reduce atomic operations.
+[`his.cu: 51`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/huffman/hist.cu#L51). GVProf reports frequent values for the histo array in both the write and read modes. Because the most frequently updated value is zero, we can conditionally perform atomicAdd to reduce atomic operations.
 
 ## lavaMD
 
@@ -64,9 +64,9 @@ Therefore, we can read just some neighbor points on *Line 195* and still get sim
 
 ## srad
 
-- vp-opt1: *value_pattern* - *single value*
+- vp-opt1: *value_pattern* - *heavy type*
 
-[`srad_kernel.cu: 79`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/srad_v1/srad_kernel.cu#L79). *d_c_loc* is always one for this output. We can memset all the values of *d_c* to 1 beforehand and to eliminate all stores with 1s
+[`srad_kernel.cu: 79`](https://github.com/FindHao/GVProf-samples/blob/110a7cdb0d57f5902941deb59899e6266f79844e/srad_v1/srad_kernel.cu#L79). *d_c_loc* is always one or zero. We changed the value type of this array to bool.
 
 - vp-opt2: *value_pattern* - *structured*
 

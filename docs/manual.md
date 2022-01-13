@@ -100,7 +100,7 @@ hpcviewer <database-dir>
 ### Data flow view
 
 ```bash
-gviewer -f <database-dir>/data_flow.dot.context -cf file -p 
+gviewer -f <database-dir>/data_flow.dot.context -cf file -pr
 # gviewer -h for detailed options
 ```
 The generated .svg can be visualized directly. To enable interactive control, we can rename the file to `demo.svg` and move it to `jquery.graphviz.svg`. After launch a server locally, we can visualize the graph, zoom in for important parts, and track each node's data flows.
