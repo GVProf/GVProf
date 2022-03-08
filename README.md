@@ -21,6 +21,9 @@ export PATH=${GVProfInstall}/bin:$PATH
 export PATH=${GVProfInstall}/hpctoolkit/bin:$PATH
 export PATH=${GVProfInstall}/redshow/bin:$PATH
 
+# If your GPU driver is greater than 470.57, this environment variable is necessary to set.
+export SANITIZER_DISABLE_PARALLEL_LAUNCHES=1
+
 # Test a sample
 cd samples/vectorAdd.f32
 make
