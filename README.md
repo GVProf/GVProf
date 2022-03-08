@@ -36,4 +36,4 @@ gvprof -e redundancy ./vectorAdd
 ## Papers
 
 - Keren Zhou, Yueming Hao, John Mellor-Crummey, Xiaozhu Meng, and Xu Liu. [GVProf: A Value Profiler for GPU-based Clusters](https://dl.acm.org/doi/10.5555/3433701.3433819). In: *The International Conference for High Performance Computing, Networking, Storage, and Analysis* (SC), 2020
-- Keren Zhou, Yueming Hao*, John Mellor-Crummey, Xiaozhu Meng, and Xu Liu. ValueExpert: Exploring Value Patterns in GPU-accelerated Applications. In: *Proceedings of the 27th ACM International Conference on Architectural Support for Programming Languages and Operating Systems*(ASPLOS), 2022 (Keren and Yueming are co-first authors)
+- Keren Zhou, Yueming Hao*, John Mellor-Crummey, Xiaozhu Meng, and Xu Liu. [ValueExpert: Exploring Value Patterns in GPU-accelerated Applications](https://dl.acm.org/doi/abs/10.1145/3503222.3507708). In: *Proceedings of the 27th ACM International Conference on Architectural Support for Programming Languages and Operating Systems*(ASPLOS), 2022 (Keren and Yueming are co-first authors)
