@@ -50,7 +50,7 @@ export PATH=${SPACK_ROOT}/bin:${PATH}
 source ${SPACK_ROOT}/share/spack/setup-env.sh
 
 # Install hpctoolkit dependencies
-spack install --only dependencies hpctoolkit ^dyninst@master ^binutils@2.34+libiberty~nls 
+spack install --only dependencies hpctoolkit@2022.05.15 ^dyninst@master ^binutils@2.34+libiberty~nls 
 spack install libmonitor@master+dlopen+hpctoolkit
 
 # Install gpu-patch
