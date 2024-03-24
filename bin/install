@@ -45,12 +45,16 @@ fi
 cd $DIR
 # Install spack
 git clone https://github.com/spack/spack.git
+# reset spack to an old version
+cd spack
+git reset --hard 51feed16dbd5b55a8f16b9cf6c8f17d8e964d6a1
+cd $DIR
 export SPACK_ROOT=$(pwd)/spack
 export PATH=${SPACK_ROOT}/bin:${PATH}
 source ${SPACK_ROOT}/share/spack/setup-env.sh
 
 # Install hpctoolkit dependencies
-spack install --only dependencies hpctoolkit@2022.05.15 ^dyninst@master ^binutils@2.34+libiberty~nls 
+spack install --only dependencies hpctoolkit ^dyninst@12.0.1 ^binutils@2.34+libiberty~nls
 spack install libmonitor@master+dlopen+hpctoolkit
 
 # Install gpu-patch
